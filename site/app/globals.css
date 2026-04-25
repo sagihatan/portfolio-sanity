@@ -1532,6 +1532,16 @@
       pointer-events: none;
     }
 
+    .tile .art.cms-art {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .tile .art.cms-art::after {
+      display: none;
+    }
+
     .tile .art>* {
       position: relative;
       z-index: 1;

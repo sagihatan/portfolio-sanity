@@ -1,6 +1,9 @@
 import ClientScripts from "./ClientScripts";
 import { client } from "../sanity/lib/client";
+import { urlFor } from "../sanity/lib/image";
 import { PROJECTS_QUERY, TESTIMONIALS_QUERY } from "../sanity/lib/queries";
+
+export const revalidate = 60;
 
 const artClassMap: Record<string, string> = {
   'art-1': 'art mock',
@@ -77,11 +80,39 @@ const avatarMap: Record<string, string> = {
   'Omri Yeheskel': '/assets/omri_y.jpeg',
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SanityImage = {
+  asset?: {
+    _ref?: string;
+  };
+};
+
+type Project = {
+  _id: string;
+  name: string;
+  subtext: string;
+  iconLabel: string;
+  accentColor: string;
+  tags?: string[];
+  tileSize: string;
+  artVariant: string;
+  image?: SanityImage;
+};
+
+function getProjectImageUrl(image?: SanityImage) {
+  if (!image?.asset?._ref) return null;
+
+  return urlFor(image)
+    .width(2400)
+    .fit('max')
+    .auto('format')
+    .url();
+}
+
 export default async function Home() {
+  const fetchOptions = { next: { revalidate } };
   const [projects, testimonials] = await Promise.all([
-    client.fetch(PROJECTS_QUERY),
-    client.fetch(TESTIMONIALS_QUERY),
+    client.fetch(PROJECTS_QUERY, {}, fetchOptions),
+    client.fetch(TESTIMONIALS_QUERY, {}, fetchOptions),
   ]);
 
   return (
@@ -207,7 +238,7 @@ export default async function Home() {
     <div className="about-grid">
       <div>
         <div className="about-hey">Hey</div>
-        <h2 className="about-title"><span className="mask-wrap"><span className="mask-text">I'm Sagi</span></span></h2>
+        <h2 className="about-title"><span className="mask-wrap"><span className="mask-text">I&rsquo;m Sagi</span></span></h2>
         <div className="about-body">
           <p>I have 8+ years in product design, working with startups from early ideas to shipped products and ongoing
             improvements.</p>
@@ -231,35 +262,41 @@ export default async function Home() {
             className="mask-text"><em>works</em></span></span></h2>
     </div>
     <div className="bento">
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {projects.map((project: any, i: number) => (
-        <div
-          key={project._id}
-          className={`tile ${project.tileSize} ${project.artVariant} fade-el`}
-          data-project-number={String(i + 1).padStart(2, '0')}
-        >
-          <div className={artClassMap[project.artVariant] ?? 'art'}>
-            {renderProjectArt(project.artVariant)}
-          </div>
-          <div className="overlay">
-            <div className="project-content">
-              <div className="project-brand">
-                <div className={`project-icon accent-${project.accentColor}`}>{project.iconLabel}</div>
-                <div className="project-copy">
-                  <h4 className="project-name">{project.name}</h4>
-                  <p className="project-subtext">{project.subtext}</p>
+      {(projects as Project[]).map((project, i) => {
+        const projectImageUrl = getProjectImageUrl(project.image);
+
+        return (
+          <div
+            key={project._id}
+            className={`tile ${project.tileSize} ${project.artVariant} fade-el`}
+            data-project-number={String(i + 1).padStart(2, '0')}
+          >
+            <div
+              className={projectImageUrl ? 'art cms-art' : (artClassMap[project.artVariant] ?? 'art')}
+              style={projectImageUrl ? { backgroundImage: `url(${projectImageUrl})` } : undefined}
+            >
+              {!projectImageUrl && renderProjectArt(project.artVariant)}
+            </div>
+            <div className="overlay">
+              <div className="project-content">
+                <div className="project-brand">
+                  <div className={`project-icon accent-${project.accentColor}`}>{project.iconLabel}</div>
+                  <div className="project-copy">
+                    <h4 className="project-name">{project.name}</h4>
+                    <p className="project-subtext">{project.subtext}</p>
+                  </div>
+                </div>
+                <div className="project-tags" aria-label="Project tags">
+                  {project.tags?.map((tag: string) => (
+                    <span key={tag} className="project-tag">{tag}</span>
+                  ))}
                 </div>
               </div>
-              <div className="project-tags" aria-label="Project tags">
-                {project.tags?.map((tag: string) => (
-                  <span key={tag} className="project-tag">{tag}</span>
-                ))}
-              </div>
             </div>
+            <span className="glow"></span>
           </div>
-          <span className="glow"></span>
-        </div>
-      ))}
+        );
+      })}
     </div>
   </section>
 
