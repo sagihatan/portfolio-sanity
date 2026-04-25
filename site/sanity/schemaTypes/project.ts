@@ -36,7 +36,7 @@ export const project = defineType({
     defineField({
       name: 'iconAsset',
       title: 'Project icon',
-      description: 'Optional image shown in the project-icon badge. Higher-resolution images are okay; the site renders it at 48 × 48 px.',
+      description: 'Optional image shown in the project-icon badge. Upload a square image when possible. The site renders it at 48 × 48 px and requests a high-resolution version for retina screens.',
       type: 'image',
     }),
     defineField({

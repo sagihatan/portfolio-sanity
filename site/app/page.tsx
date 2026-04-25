@@ -125,9 +125,10 @@ function getProjectIconUrl(icon?: SanityImage) {
   if (!icon?.asset?._ref) return null;
 
   return urlFor(icon)
-    .width(48)
-    .height(48)
-    .fit('max')
+    .width(192)
+    .height(192)
+    .fit('crop')
+    .quality(90)
     .auto('format')
     .url();
 }
