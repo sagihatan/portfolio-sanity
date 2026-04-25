@@ -2998,8 +2998,8 @@
       }
 
       .hero.wrap {
-        padding-left: 32px !important;
-        padding-right: 32px !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
       }
 
       #about {
@@ -3180,7 +3180,7 @@
 
       .hero-sub {
         order: 2;
-        width: calc(100vw - 32px) !important;
+        width: 100% !important;
         max-width: 520px;
         margin-left: auto;
         margin-right: auto;
