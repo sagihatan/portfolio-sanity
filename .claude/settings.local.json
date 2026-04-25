@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest site --ts --no-tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(sed -n '3575,4092p' \"/Users/mac/Documents/Projects/Sagi Hatan - Senior Product Designer/index.html\")",
+      "Read(//tmp/**)",
+      "Bash(sed -n '4094,4544p' \"/Users/mac/Documents/Projects/Sagi Hatan - Senior Product Designer/index.html\")",
+      "Bash(sed -n '4549,4636p' \"/Users/mac/Documents/Projects/Sagi Hatan - Senior Product Designer/index.html\")",
+      "Bash(python3)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(echo \"PID: $!\")",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Sanity__whoami",
+      "mcp__Sanity__list_projects",
+      "mcp__Sanity__list_datasets",
+      "mcp__Sanity__get_schema",
+      "mcp__Sanity__read_docs",
+      "mcp__Sanity__get_sanity_rules",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(npx sanity *)",
+      "mcp__Sanity__create_documents_from_json",
+      "mcp__Sanity__publish_documents",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
