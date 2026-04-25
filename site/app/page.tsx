@@ -80,6 +80,13 @@ const avatarMap: Record<string, string> = {
   'Omri Yeheskel': '/assets/omri_y.jpeg',
 };
 
+const localProjectIconMap: Record<string, string> = {
+  bravos: '/assets/work/icons-big/bravos.png',
+  draft: '/assets/work/icons-big/draft.png',
+  newcore: '/assets/work/icons-big/newcore.png',
+  voltify: '/assets/work/icons-big/voltify.png',
+};
+
 type SanityImage = {
   asset?: {
     _ref?: string;
@@ -118,6 +125,16 @@ function getProjectIconUrl(icon?: SanityImage) {
     .fit('max')
     .auto('format')
     .url();
+}
+
+function getLocalProjectIconUrl(projectName: string) {
+  const normalizedName = projectName.toLowerCase().replace(/\s+/g, '');
+
+  for (const [name, iconUrl] of Object.entries(localProjectIconMap)) {
+    if (normalizedName.includes(name)) return iconUrl;
+  }
+
+  return null;
 }
 
 export default async function Home() {
@@ -276,7 +293,7 @@ export default async function Home() {
     <div className="bento">
       {(projects as Project[]).map((project, i) => {
         const projectImageUrl = getProjectImageUrl(project.image);
-        const projectIconUrl = getProjectIconUrl(project.iconAsset);
+        const projectIconUrl = getLocalProjectIconUrl(project.name) ?? getProjectIconUrl(project.iconAsset);
 
         return (
           <div

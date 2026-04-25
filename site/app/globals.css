@@ -1594,17 +1594,22 @@
     }
 
     .project-icon {
+      --icon-accent-rgb: 181, 39, 82;
       width: 48px;
       height: 48px;
       flex: 0 0 48px;
       display: grid;
       place-items: center;
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.94);
+      position: relative;
+      isolation: isolate;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.82)),
+        radial-gradient(90% 90% at 18% 12%, rgba(var(--icon-accent-rgb), 0.16), transparent 62%);
       color: var(--ink);
       box-shadow:
         0 12px 30px rgba(0, 0, 0, 0.14),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+        0 8px 18px -14px rgba(var(--icon-accent-rgb), 0.58);
       font-family: var(--font-sans);
       font-size: 20px;
       font-weight: 800;
@@ -1612,19 +1617,54 @@
       line-height: 1;
     }
 
+    .project-icon::before {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border-radius: 15px;
+      pointer-events: none;
+      background:
+        radial-gradient(70% 62% at 50% 88%, rgba(var(--icon-accent-rgb), 0.2), transparent 68%);
+      filter: blur(8px);
+      opacity: 0.7;
+      z-index: -1;
+    }
+
+    .project-icon::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      border: 0.5px solid rgba(var(--icon-accent-rgb), 0.32);
+      background:
+        linear-gradient(145deg, rgba(var(--icon-accent-rgb), 0.12), rgba(255, 255, 255, 0.055) 45%, rgba(0, 0, 0, 0.07)),
+        linear-gradient(315deg, rgba(var(--icon-accent-rgb), 0.16), transparent 44%);
+      box-shadow:
+        0 -2px 0 0 rgba(0, 0, 0, 0.075) inset,
+        0 0 0 0.5px rgba(var(--icon-accent-rgb), 0.18) inset,
+        0 2px 1px 0 rgba(255, 255, 255, 0.08) inset,
+        0 0 14px 2px rgba(var(--icon-accent-rgb), 0.11) inset;
+      z-index: 2;
+    }
+
     .project-icon.accent-teal {
+      --icon-accent-rgb: 0, 184, 148;
       color: #00B894;
     }
 
     .project-icon.accent-plum {
+      --icon-accent-rgb: 181, 39, 82;
       color: #B52752;
     }
 
     .project-icon.accent-violet {
+      --icon-accent-rgb: 103, 17, 134;
       color: #671186;
     }
 
     .project-icon.accent-amber {
+      --icon-accent-rgb: 212, 83, 46;
       color: #D4532E;
     }
 
@@ -1634,6 +1674,8 @@
       height: 48px;
       border-radius: inherit;
       object-fit: cover;
+      position: relative;
+      z-index: 1;
     }
 
     .project-copy {
