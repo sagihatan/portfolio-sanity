@@ -27,3 +27,10 @@ export const TESTIMONIALS_QUERY = defineQuery(`
     avatar
   }
 `)
+
+export const SITE_SETTINGS_QUERY = defineQuery(`
+  *[_type == "siteSettings"][0] {
+    showHeroStage,
+    "heroStageVideoUrl": heroStageVideo.asset->url
+  }
+`)

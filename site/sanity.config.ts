@@ -11,7 +11,22 @@ export default defineConfig({
   projectId: 'gqanrvta',
   dataset: 'production',
 
-  plugins: [structureTool(), visionTool()],
+  plugins: [
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title('Content')
+          .items([
+            S.listItem()
+              .title('Site settings')
+              .schemaType('siteSettings')
+              .child(S.document().schemaType('siteSettings').documentId('siteSettings')),
+            S.divider(),
+            ...S.documentTypeListItems().filter((item) => item.getId() !== 'siteSettings'),
+          ]),
+    }),
+    visionTool(),
+  ],
 
   schema: {
     types: schemaTypes,

@@ -1,7 +1,7 @@
 import ClientScripts from "./ClientScripts";
 import { client } from "../sanity/lib/client";
 import { urlFor } from "../sanity/lib/image";
-import { PROJECTS_QUERY, TESTIMONIALS_QUERY } from "../sanity/lib/queries";
+import { PROJECTS_QUERY, SITE_SETTINGS_QUERY, TESTIMONIALS_QUERY } from "../sanity/lib/queries";
 
 export const revalidate = 60;
 
@@ -93,6 +93,11 @@ type SanityImage = {
   };
 };
 
+type SiteSettings = {
+  showHeroStage?: boolean;
+  heroStageVideoUrl?: string | null;
+};
+
 type Project = {
   _id: string;
   name: string;
@@ -139,10 +144,12 @@ function getLocalProjectIconUrl(projectName: string) {
 
 export default async function Home() {
   const fetchOptions = { next: { revalidate } };
-  const [projects, testimonials] = await Promise.all([
+  const [projects, testimonials, siteSettings] = await Promise.all([
     client.fetch(PROJECTS_QUERY, {}, fetchOptions),
     client.fetch(TESTIMONIALS_QUERY, {}, fetchOptions),
+    client.fetch<SiteSettings | null>(SITE_SETTINGS_QUERY, {}, fetchOptions),
   ]);
+  const heroStageVideoSrc = siteSettings?.showHeroStage ? siteSettings.heroStageVideoUrl : null;
 
   return (
     <>
@@ -210,12 +217,14 @@ export default async function Home() {
       </div>
     </div>
 
-    <div className="hero-stage" aria-hidden="true">
-      <div className="hero-stage-chrome"><span className="d"></span><span className="d"></span><span className="d"></span></div>
-      <div className="hero-stage-inner">
-        <span className="placeholder-label">recent-case-study.mp4 · drop in</span>
+    {heroStageVideoSrc ? (
+      <div className="hero-stage" aria-hidden="true">
+        <div className="hero-stage-chrome"><span className="d"></span><span className="d"></span><span className="d"></span></div>
+        <div className="hero-stage-inner">
+          <video className="hero-stage-video" src={heroStageVideoSrc} autoPlay muted loop playsInline preload="metadata"></video>
+        </div>
       </div>
-    </div>
+    ) : null}
   </header>
 
   {/* VALUE */}
