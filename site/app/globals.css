@@ -3569,7 +3569,7 @@
         justify-content: center;
         isolation: isolate;
         overflow: visible;
-        padding: 84px 16px 48px;
+        padding: 84px 16px 16px;
       }
 
       .cta-visual {
