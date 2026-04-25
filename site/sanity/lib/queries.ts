@@ -7,6 +7,7 @@ export const PROJECTS_QUERY = defineQuery(`
     name,
     subtext,
     iconLabel,
+    iconAsset,
     accentColor,
     tags,
     tileSize,

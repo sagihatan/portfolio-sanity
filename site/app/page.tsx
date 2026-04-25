@@ -91,6 +91,7 @@ type Project = {
   name: string;
   subtext: string;
   iconLabel: string;
+  iconAsset?: SanityImage;
   accentColor: string;
   tags?: string[];
   tileSize: string;
@@ -103,6 +104,17 @@ function getProjectImageUrl(image?: SanityImage) {
 
   return urlFor(image)
     .width(2400)
+    .fit('max')
+    .auto('format')
+    .url();
+}
+
+function getProjectIconUrl(icon?: SanityImage) {
+  if (!icon?.asset?._ref) return null;
+
+  return urlFor(icon)
+    .width(48)
+    .height(48)
     .fit('max')
     .auto('format')
     .url();
@@ -264,6 +276,7 @@ export default async function Home() {
     <div className="bento">
       {(projects as Project[]).map((project, i) => {
         const projectImageUrl = getProjectImageUrl(project.image);
+        const projectIconUrl = getProjectIconUrl(project.iconAsset);
 
         return (
           <div
@@ -280,7 +293,19 @@ export default async function Home() {
             <div className="overlay">
               <div className="project-content">
                 <div className="project-brand">
-                  <div className={`project-icon accent-${project.accentColor}`}>{project.iconLabel}</div>
+                  <div className={`project-icon accent-${project.accentColor}`}>
+                    {projectIconUrl ? (
+                      <img
+                        className="project-icon-img"
+                        src={projectIconUrl}
+                        alt=""
+                        width="48"
+                        height="48"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : project.iconLabel}
+                  </div>
                   <div className="project-copy">
                     <h4 className="project-name">{project.name}</h4>
                     <p className="project-subtext">{project.subtext}</p>

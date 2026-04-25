@@ -1628,6 +1628,14 @@
       color: #D4532E;
     }
 
+    .project-icon-img {
+      display: block;
+      width: 48px;
+      height: 48px;
+      border-radius: inherit;
+      object-fit: cover;
+    }
+
     .project-copy {
       min-width: 0;
     }

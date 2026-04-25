@@ -1,6 +1,25 @@
 import { defineType, defineField, defineArrayMember } from 'sanity'
 import { ImageIcon } from '@sanity/icons'
 
+type SanityImageValue = {
+  asset?: {
+    _ref?: string
+    _id?: string
+  }
+}
+
+function getAssetDimensions(image?: SanityImageValue) {
+  const assetId = image?.asset?._ref ?? image?.asset?._id
+  const dimensions = assetId?.match(/-(\d+)x(\d+)-[a-z0-9]+$/i)
+
+  if (!dimensions) return null
+
+  return {
+    width: Number(dimensions[1]),
+    height: Number(dimensions[2]),
+  }
+}
+
 export const project = defineType({
   name: 'project',
   title: 'Project',
@@ -29,9 +48,27 @@ export const project = defineType({
     defineField({
       name: 'iconLabel',
       title: 'Icon label',
-      description: 'Single letter shown in the icon badge (e.g. "M" for Midori)',
+      description: 'Fallback single letter shown when no project icon is uploaded',
       type: 'string',
       validation: (rule) => rule.required().max(1),
+    }),
+    defineField({
+      name: 'iconAsset',
+      title: 'Project icon',
+      description: 'Optional image shown in the project-icon badge. Must be exactly 48 × 48 px.',
+      type: 'image',
+      validation: (rule) =>
+        rule.custom((value) => {
+          if (!value) return true
+
+          const dimensions = getAssetDimensions(value as SanityImageValue)
+
+          if (!dimensions) return 'Unable to verify icon size. Please upload a 48 × 48 px image.'
+
+          return dimensions.width === 48 && dimensions.height === 48
+            ? true
+            : 'Project icon must be exactly 48 × 48 px.'
+        }),
     }),
     defineField({
       name: 'accentColor',
@@ -109,7 +146,15 @@ export const project = defineType({
     select: {
       title: 'name',
       subtitle: 'subtext',
-      media: 'image',
+      iconAsset: 'iconAsset',
+      image: 'image',
+    },
+    prepare({ title, subtitle, iconAsset, image }) {
+      return {
+        title,
+        subtitle,
+        media: iconAsset ?? image,
+      }
     },
   },
 })
