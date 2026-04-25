@@ -3500,7 +3500,7 @@
       }
 
       .love-card {
-        flex: 0 0 min(72vw, 340px);
+        flex: 0 0 calc(100vw - 64px);
       }
 
       .love-track-wrap {
