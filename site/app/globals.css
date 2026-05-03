@@ -680,7 +680,11 @@
     /* ─── HERO ──────────────────────────────────────────── */
     .hero {
       position: relative;
-      padding: 96px 0 120px;
+      min-height: calc(100svh - 88px);
+      padding: 96px 0 clamp(96px, 10vh, 140px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
     }
 
@@ -779,7 +783,9 @@
 
     /* social proof strip */
     .proof {
-      margin-top: 80px;
+      width: 100%;
+      margin-top: auto;
+      padding-top: clamp(56px, 8vh, 96px);
       position: relative;
       display: flex;
       align-items: center;
@@ -798,36 +804,33 @@
 
     .proof .logos {
       display: flex;
-      gap: 40px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
       align-items: center;
       flex-wrap: wrap;
       justify-content: center;
     }
 
     .proof-logo {
-      font-family: var(--font-sans);
-      font-weight: 700;
-      font-size: 18px;
-      letter-spacing: -0.02em;
       display: flex;
       align-items: center;
-      gap: 8px;
-      color: rgba(11, 11, 15, 0.45);
+      justify-content: center;
+      height: 34px;
+      flex: 0 0 auto;
+      overflow: visible;
+      line-height: 0;
     }
 
-    .proof-logo .g {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      background: rgba(11, 11, 15, 0.35);
-    }
-
-    .proof-logo.alt .g {
-      border-radius: 50%;
-    }
-
-    .proof-logo.alt2 .g {
-      transform: rotate(45deg);
+    .proof-logo img {
+      display: block;
+      width: auto;
+      height: var(--logo-height, 30px);
+      max-width: var(--logo-max-width, 170px);
+      object-fit: contain;
+      opacity: 0.42;
+      filter: grayscale(1);
+      transform: translateY(var(--logo-y, 0px));
     }
 
     /* Dupes hidden by default (desktop shows original set only) */
@@ -836,7 +839,13 @@
     }
 
     .logos-track {
-      display: contents;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
     }
 
     /* hero device / screen */
@@ -3157,6 +3166,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        min-height: auto;
         padding-top: 56px !important;
         padding-bottom: 40px !important;
         text-align: center;
@@ -3241,8 +3251,6 @@
 
       .proof .logos-track .proof-logo {
         flex: 0 0 auto;
-        white-space: nowrap;
-        font-size: 17px;
       }
 
       .proof .logos-track .proof-logo.dup {

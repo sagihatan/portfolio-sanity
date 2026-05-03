@@ -1,4 +1,5 @@
 import ClientScripts from "./ClientScripts";
+import type { CSSProperties } from "react";
 import { client } from "../sanity/lib/client";
 import { urlFor } from "../sanity/lib/image";
 import { PROJECTS_QUERY, SITE_SETTINGS_QUERY, TESTIMONIALS_QUERY } from "../sanity/lib/queries";
@@ -96,6 +97,17 @@ type SanityImage = {
 type SiteSettings = {
   showHeroStage?: boolean;
   heroStageVideoUrl?: string | null;
+  trustedLogos?: TrustedLogo[];
+};
+
+type TrustedLogo = {
+  _key?: string;
+  name?: string;
+  altText?: string;
+  displayHeight?: number;
+  maxWidth?: number;
+  verticalOffset?: number;
+  logoUrl?: string | null;
 };
 
 type Project = {
@@ -110,6 +122,54 @@ type Project = {
   artVariant: string;
   image?: SanityImage;
 };
+
+const defaultTrustedLogos: TrustedLogo[] = [
+  {
+    _key: 'voltify',
+    name: 'Voltify',
+    altText: 'Voltify',
+    displayHeight: 24,
+    maxWidth: 138,
+    verticalOffset: 0,
+    logoUrl: '/assets/logos/voltify.svg',
+  },
+  {
+    _key: 'mesh',
+    name: 'MESH',
+    altText: 'MESH',
+    displayHeight: 24,
+    maxWidth: 138,
+    verticalOffset: 0,
+    logoUrl: '/assets/logos/mesh.png',
+  },
+  {
+    _key: 'wisor',
+    name: 'Wisor.AI',
+    altText: 'Wisor.AI',
+    displayHeight: 31,
+    maxWidth: 170,
+    verticalOffset: -1,
+    logoUrl: '/assets/logos/wisor.png',
+  },
+  {
+    _key: 'quizell',
+    name: 'Quizell',
+    altText: 'Quizell',
+    displayHeight: 24,
+    maxWidth: 138,
+    verticalOffset: 0,
+    logoUrl: '/assets/logos/quizell.png',
+  },
+  {
+    _key: 'nso',
+    name: 'NSO Group',
+    altText: 'NSO Group',
+    displayHeight: 34,
+    maxWidth: 98,
+    verticalOffset: 1,
+    logoUrl: '/assets/logos/nso.png',
+  },
+];
 
 function getProjectImageUrl(image?: SanityImage) {
   if (!image?.asset?._ref) return null;
@@ -143,6 +203,31 @@ function getLocalProjectIconUrl(projectName: string) {
   return null;
 }
 
+function getTrustedLogoStyle(logo: TrustedLogo): CSSProperties {
+  return {
+    '--logo-height': `${logo.displayHeight || 30}px`,
+    '--logo-max-width': `${logo.maxWidth || 170}px`,
+    '--logo-y': `${logo.verticalOffset || 0}px`,
+  } as CSSProperties;
+}
+
+function renderTrustedLogo(logo: TrustedLogo, index: number, isDuplicate = false) {
+  if (!logo.logoUrl) return null;
+
+  const name = logo.name || logo.altText || 'Trusted company logo';
+
+  return (
+    <span
+      className={`proof-logo${isDuplicate ? ' dup' : ''}`}
+      key={`${logo._key || logo.logoUrl || index}-${isDuplicate ? 'dup' : 'main'}`}
+      style={getTrustedLogoStyle(logo)}
+      aria-hidden={isDuplicate ? true : undefined}
+    >
+      <img src={logo.logoUrl} alt={isDuplicate ? '' : logo.altText || name} loading="lazy" />
+    </span>
+  );
+}
+
 export default async function Home() {
   const fetchOptions = { next: { revalidate } };
   const [projects, testimonials, siteSettings] = await Promise.all([
@@ -151,6 +236,8 @@ export default async function Home() {
     client.fetch<SiteSettings | null>(SITE_SETTINGS_QUERY, {}, fetchOptions),
   ]);
   const heroStageVideoSrc = siteSettings?.showHeroStage ? siteSettings.heroStageVideoUrl : null;
+  const cmsTrustedLogos = siteSettings?.trustedLogos?.filter((logo) => logo.logoUrl) || [];
+  const trustedLogos = cmsTrustedLogos.length ? cmsTrustedLogos : defaultTrustedLogos;
 
   return (
     <>
@@ -197,26 +284,19 @@ export default async function Home() {
           className="btn-label">Book a call</span></a>
     </div>
 
+    {trustedLogos.length ? (
     <div className="proof">
       <div style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "18px", width: "100%"}}>
         <span className="label">Trusted by teams at</span>
         <div className="logos">
           <div className="logos-track">
-            <span className="proof-logo"><span className="g"></span>Northwind</span>
-            <span className="proof-logo alt"><span className="g"></span>Lumen</span>
-            <span className="proof-logo alt2"><span className="g"></span>Fieldpoint</span>
-            <span className="proof-logo"><span className="g"></span>Halcyon</span>
-            <span className="proof-logo alt"><span className="g"></span>Orchard</span>
-            {/* duplicated set for seamless loop (shown only on mobile) */}
-            <span className="proof-logo dup" aria-hidden="true"><span className="g"></span>Northwind</span>
-            <span className="proof-logo alt dup" aria-hidden="true"><span className="g"></span>Lumen</span>
-            <span className="proof-logo alt2 dup" aria-hidden="true"><span className="g"></span>Fieldpoint</span>
-            <span className="proof-logo dup" aria-hidden="true"><span className="g"></span>Halcyon</span>
-            <span className="proof-logo alt dup" aria-hidden="true"><span className="g"></span>Orchard</span>
+            {trustedLogos.map((logo, index) => renderTrustedLogo(logo, index))}
+            {trustedLogos.map((logo, index) => renderTrustedLogo(logo, index, true))}
           </div>
         </div>
       </div>
     </div>
+    ) : null}
 
     {heroStageVideoSrc ? (
       <div className="hero-stage" aria-hidden="true">

@@ -20,7 +20,7 @@ export default defineConfig({
             S.listItem()
               .title('Site settings')
               .schemaType('siteSettings')
-              .child(S.document().schemaType('siteSettings').documentId('siteSettings')),
+              .child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site settings')),
             S.divider(),
             ...S.documentTypeListItems().filter((item) => item.getId() !== 'siteSettings'),
           ]),

@@ -31,6 +31,15 @@ export const TESTIMONIALS_QUERY = defineQuery(`
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0] {
     showHeroStage,
-    "heroStageVideoUrl": heroStageVideo.asset->url
+    "heroStageVideoUrl": heroStageVideo.asset->url,
+    "trustedLogos": trustedLogos[coalesce(enabled, true) == true && (defined(logo.asset) || defined(localLogoUrl))] {
+      _key,
+      name,
+      altText,
+      displayHeight,
+      maxWidth,
+      verticalOffset,
+      "logoUrl": coalesce(logo.asset->url, localLogoUrl)
+    }
   }
 `)
