@@ -12,6 +12,10 @@ export const PROJECTS_QUERY = defineQuery(`
     tags,
     tileSize,
     artVariant,
+    imageFit,
+    imagePosition,
+    imageBackgroundColor,
+    imagePadding,
     image
   }
 `)

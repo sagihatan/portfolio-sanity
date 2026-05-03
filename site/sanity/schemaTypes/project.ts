@@ -99,9 +99,52 @@ export const project = defineType({
     defineField({
       name: 'image',
       title: 'Project image',
-      description: 'Optional. Replaces the CSS art background. Format: webp (80–90 q), jpg for photos, png for UI/text. Keep the main subject centered — the site uses background-size: cover, so edges crop on mobile and tablet. If one size fits all tiles, use 2400 × 1600 px.',
+      description: 'Optional. Replaces the CSS art background. Format: webp (80–90 q), jpg for photos, png for UI/text. Default display is cover + center, so edges can crop when the card shape changes.',
       type: 'image',
       options: { hotspot: true },
+    }),
+    defineField({
+      name: 'imageFit',
+      title: 'Image fit',
+      description: 'Cover fills the tile and may crop. Contain shows the full image and may leave empty space.',
+      type: 'string',
+      initialValue: 'cover',
+      options: {
+        list: [
+          { title: 'Cover - fill tile, may crop', value: 'cover' },
+          { title: 'Contain - show full image', value: 'contain' },
+        ],
+        layout: 'radio',
+      },
+    }),
+    defineField({
+      name: 'imagePosition',
+      title: 'Image position',
+      description: 'Controls which part stays visible when using cover, and where the image sits when using contain.',
+      type: 'string',
+      initialValue: 'center',
+      options: {
+        list: [
+          { title: 'Center', value: 'center' },
+          { title: 'Top', value: 'top' },
+          { title: 'Top left', value: 'top left' },
+          { title: 'Left', value: 'left' },
+          { title: 'Top right', value: 'top right' },
+        ],
+      },
+    }),
+    defineField({
+      name: 'imageBackgroundColor',
+      title: 'Image background color',
+      description: 'Optional color shown behind contained images. Example: #f7f7f8',
+      type: 'string',
+    }),
+    defineField({
+      name: 'imagePadding',
+      title: 'Image padding',
+      description: 'Optional padding in pixels around the image. Most cover images should stay at 0.',
+      type: 'number',
+      validation: (rule) => rule.min(0).max(80),
     }),
   ],
   orderings: [

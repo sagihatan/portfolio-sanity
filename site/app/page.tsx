@@ -120,6 +120,10 @@ type Project = {
   tags?: string[];
   tileSize: string;
   artVariant: string;
+  imageFit?: 'cover' | 'contain';
+  imagePosition?: string;
+  imageBackgroundColor?: string;
+  imagePadding?: number;
   image?: SanityImage;
 };
 
@@ -191,6 +195,16 @@ function getProjectIconUrl(icon?: SanityImage) {
     .quality(90)
     .auto('format')
     .url();
+}
+
+function getProjectImageStyle(project: Project, imageUrl: string): CSSProperties {
+  return {
+    backgroundImage: `url(${imageUrl})`,
+    '--project-image-fit': project.imageFit || 'cover',
+    '--project-image-position': project.imagePosition || 'center',
+    '--project-image-bg': project.imageBackgroundColor || 'transparent',
+    '--project-image-padding': `${project.imagePadding || 0}px`,
+  } as CSSProperties;
 }
 
 function getLocalProjectIconUrl(projectName: string) {
@@ -393,7 +407,7 @@ export default async function Home() {
           >
             <div
               className={projectImageUrl ? 'art cms-art' : (artClassMap[project.artVariant] ?? 'art')}
-              style={projectImageUrl ? { backgroundImage: `url(${projectImageUrl})` } : undefined}
+              style={projectImageUrl ? getProjectImageStyle(project, projectImageUrl) : undefined}
             >
               {!projectImageUrl && renderProjectArt(project.artVariant)}
             </div>

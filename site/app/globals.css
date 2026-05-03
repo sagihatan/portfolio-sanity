@@ -1549,9 +1549,13 @@
     }
 
     .tile .art.cms-art {
-      background-size: cover;
-      background-position: center;
+      background-color: var(--project-image-bg, transparent);
+      background-size: var(--project-image-fit, cover);
+      background-position: var(--project-image-position, center);
       background-repeat: no-repeat;
+      background-origin: content-box;
+      background-clip: border-box;
+      padding: var(--project-image-padding, 0px);
     }
 
     .tile .art.cms-art::after {
