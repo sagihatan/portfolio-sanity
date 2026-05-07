@@ -183,6 +183,11 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
       aria-label="Product design capabilities"
       ref={sectionRef}
     >
+      <div className="cap-snap-layer" aria-hidden="true">
+        {renderedItems.map((item, i) => (
+          <div className="cap-snap-marker" key={`${item.key}-snap-${i}`} />
+        ))}
+      </div>
       <div className="cap-sticky">
         <div className="section-head">
           <h2 className="section-title">
