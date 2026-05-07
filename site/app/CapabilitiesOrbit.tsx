@@ -76,10 +76,24 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
       const exitStart = reduceMotion ? 1 : mobile ? 0.72 : 0.8;
       const exitProgress = clamp((progress - exitStart) / Math.max(0.001, 1 - exitStart), 0, 1);
       const easedExit = 1 - Math.pow(1 - exitProgress, 3);
+      // Step + hold: each card "dwells" for a fraction of its scroll slot,
+      // then transitions to the next with smoothstep easing. Adds friction
+      // so users can register each card before it advances.
+      function stepAndHold(p: number, slots: number, range: number, holdRatio: number) {
+        const slot = range / slots;
+        const idx = Math.min(Math.floor(p / slot), slots - 1);
+        const local = p - idx * slot;
+        const hold = slot * holdRatio;
+        if (local <= hold || idx === slots - 1) return idx;
+        const t = (local - hold) / (slot - hold);
+        const eased = t * t * (3 - 2 * t);
+        return idx + eased;
+      }
+      const holdRatio = mobile ? 0.34 : 0.28;
       const raw = reduceMotion
         ? 0
         : progress < exitStart
-          ? (progress / exitStart) * maxIndex
+          ? stepAndHold(progress, maxIndex + 1, exitStart, holdRatio)
           : maxIndex + easedExit * (mobile ? 0.74 : 0.92);
       const nearest = exitProgress > 0 ? maxIndex : clamp(Math.round(raw), 0, maxIndex);
 
