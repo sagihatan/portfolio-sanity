@@ -435,6 +435,7 @@ export default function ClientScripts() {
       // Each section gets its own independent character index sequence
       splitChars('.hero-title .mask-text');
       splitChars('#services .section-title .mask-text');
+      splitChars('#capabilities .section-title .mask-text');
       splitChars('#services .v-title');
       splitChars('#about .about-title .mask-text');
       splitChars('#about .about-sig .mask-text');

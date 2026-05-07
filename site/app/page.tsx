@@ -1,8 +1,15 @@
 import ClientScripts from "./ClientScripts";
+import CapabilitiesOrbit, { type CapabilityOrbitItem } from "./CapabilitiesOrbit";
 import type { CSSProperties } from "react";
 import { client } from "../sanity/lib/client";
 import { urlFor } from "../sanity/lib/image";
-import { PROJECTS_QUERY, SITE_SETTINGS_QUERY, TESTIMONIALS_QUERY } from "../sanity/lib/queries";
+import {
+  CAPABILITIES_SETTINGS_QUERY,
+  PROJECTS_QUERY,
+  SITE_SETTINGS_QUERY,
+  TESTIMONIALS_QUERY,
+  TRUSTED_LOGOS_SETTINGS_QUERY,
+} from "../sanity/lib/queries";
 
 export const revalidate = 60;
 
@@ -98,6 +105,15 @@ type SiteSettings = {
   showHeroStage?: boolean;
   heroStageVideoUrl?: string | null;
   trustedLogos?: TrustedLogo[];
+  capabilities?: Capability[];
+};
+
+type TrustedLogosSettings = {
+  logos?: TrustedLogo[];
+};
+
+type CapabilitiesSettings = {
+  items?: Capability[];
 };
 
 type TrustedLogo = {
@@ -108,6 +124,14 @@ type TrustedLogo = {
   maxWidth?: number;
   verticalOffset?: number;
   logoUrl?: string | null;
+};
+
+type Capability = {
+  _key?: string;
+  title?: string;
+  description?: string;
+  image?: SanityImage;
+  altText?: string;
 };
 
 type Project = {
@@ -175,6 +199,68 @@ const defaultTrustedLogos: TrustedLogo[] = [
   },
 ];
 
+const defaultCapabilities: CapabilityOrbitItem[] = [
+  {
+    key: 'mvp',
+    title: 'MVPs',
+    description: 'From idea to product.',
+    imageUrl: '/assets/capabilities/mvps.png',
+    iconUrl: '/assets/capabilities/icons/mvps.svg',
+  },
+  {
+    key: 'saas',
+    title: 'SaaS',
+    description: 'Make complex products simple.',
+    imageUrl: '/assets/capabilities/saas.png',
+    iconUrl: '/assets/capabilities/icons/saas.svg',
+  },
+  {
+    key: 'mobile-apps',
+    title: 'Mobile apps',
+    description: 'Apps people love to use.',
+    imageUrl: '/assets/capabilities/mobile.png',
+    iconUrl: '/assets/capabilities/icons/mobile.svg',
+  },
+  {
+    key: 'websites',
+    title: 'Websites',
+    description: 'Make them clear and memorable.',
+    imageUrl: '/assets/capabilities/web-design.png',
+    iconUrl: '/assets/capabilities/icons/web-design.svg',
+  },
+  {
+    key: 'branding',
+    title: 'Branding',
+    description: 'Make your product unforgettable.',
+    imageUrl: '/assets/capabilities/branding.png',
+    iconUrl: '/assets/capabilities/icons/branding.svg',
+  },
+];
+
+const localCapabilityImageMap: Record<string, string> = {
+  mvp: '/assets/capabilities/mvps.png',
+  mvps: '/assets/capabilities/mvps.png',
+  saas: '/assets/capabilities/saas.png',
+  mobile: '/assets/capabilities/mobile.png',
+  mobileapps: '/assets/capabilities/mobile.png',
+  websites: '/assets/capabilities/web-design.png',
+  website: '/assets/capabilities/web-design.png',
+  webdesign: '/assets/capabilities/web-design.png',
+  branding: '/assets/capabilities/branding.png',
+};
+
+const localCapabilityIconMap: Record<string, string> = {
+  mvp: '/assets/capabilities/icons/mvps.svg',
+  mvps: '/assets/capabilities/icons/mvps.svg',
+  saas: '/assets/capabilities/icons/saas.svg',
+  mobile: '/assets/capabilities/icons/mobile.svg',
+  mobileapps: '/assets/capabilities/icons/mobile.svg',
+  websites: '/assets/capabilities/icons/web-design.svg',
+  website: '/assets/capabilities/icons/web-design.svg',
+  webdesign: '/assets/capabilities/icons/web-design.svg',
+  branding: '/assets/capabilities/icons/branding.svg',
+};
+
 function getProjectImageUrl(image?: SanityImage) {
   if (!image?.asset?._ref) return null;
 
@@ -183,6 +269,30 @@ function getProjectImageUrl(image?: SanityImage) {
     .fit('max')
     .auto('format')
     .url();
+}
+
+function getCapabilityImageUrl(image?: SanityImage) {
+  if (!image?.asset?._ref) return null;
+
+  return urlFor(image)
+    .width(1200)
+    .height(750)
+    .fit('crop')
+    .quality(90)
+    .auto('format')
+    .url();
+}
+
+function getLocalCapabilityImageUrl(title?: string | null, fallbackIndex?: number) {
+  const normalizedTitle = (title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  return localCapabilityImageMap[normalizedTitle] || defaultCapabilities[fallbackIndex || 0]?.imageUrl || null;
+}
+
+function getLocalCapabilityIconUrl(title?: string | null, fallbackIndex?: number) {
+  const normalizedTitle = (title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  return localCapabilityIconMap[normalizedTitle] || defaultCapabilities[fallbackIndex || 0]?.iconUrl || null;
 }
 
 function getProjectIconUrl(icon?: SanityImage) {
@@ -244,14 +354,34 @@ function renderTrustedLogo(logo: TrustedLogo, index: number, isDuplicate = false
 
 export default async function Home() {
   const fetchOptions = { next: { revalidate } };
-  const [projects, testimonials, siteSettings] = await Promise.all([
+  const [projects, testimonials, siteSettings, trustedLogosSettings, capabilitiesSettings] = await Promise.all([
     client.fetch(PROJECTS_QUERY, {}, fetchOptions),
     client.fetch(TESTIMONIALS_QUERY, {}, fetchOptions),
     client.fetch<SiteSettings | null>(SITE_SETTINGS_QUERY, {}, fetchOptions),
+    client.fetch<TrustedLogosSettings | null>(TRUSTED_LOGOS_SETTINGS_QUERY, {}, fetchOptions),
+    client.fetch<CapabilitiesSettings | null>(CAPABILITIES_SETTINGS_QUERY, {}, fetchOptions),
   ]);
   const heroStageVideoSrc = siteSettings?.showHeroStage ? siteSettings.heroStageVideoUrl : null;
-  const cmsTrustedLogos = siteSettings?.trustedLogos?.filter((logo) => logo.logoUrl) || [];
-  const trustedLogos = cmsTrustedLogos.length ? cmsTrustedLogos : defaultTrustedLogos;
+  const cmsTrustedLogos = trustedLogosSettings?.logos?.filter((logo) => logo.logoUrl) || [];
+  const legacyTrustedLogos = siteSettings?.trustedLogos?.filter((logo) => logo.logoUrl) || [];
+  const trustedLogos = cmsTrustedLogos.length
+    ? cmsTrustedLogos
+    : legacyTrustedLogos.length
+      ? legacyTrustedLogos
+      : defaultTrustedLogos;
+  const cmsCapabilities = capabilitiesSettings?.items?.filter((item) => item.title && item.description) || [];
+  const legacyCapabilities = siteSettings?.capabilities?.filter((item) => item.title && item.description) || [];
+  const capabilitySource = cmsCapabilities.length ? cmsCapabilities : legacyCapabilities;
+  const capabilities = capabilitySource.length
+    ? capabilitySource.map((item, index) => ({
+      key: item._key || `${item.title}-${index}`,
+      title: item.title || defaultCapabilities[index]?.title || 'Capability',
+      description: item.description || defaultCapabilities[index]?.description || '',
+      imageUrl: getCapabilityImageUrl(item.image) || getLocalCapabilityImageUrl(item.title, index),
+      iconUrl: getLocalCapabilityIconUrl(item.title, index),
+      altText: item.altText || item.title || 'Capability preview',
+    }))
+    : defaultCapabilities;
 
   return (
     <>
@@ -326,10 +456,10 @@ export default async function Home() {
   <section id="services" className="wrap sys-reveal-trigger">
     <div className="section-head">
       <h2 className="section-title" style={{color: "rgb(0,0,0)"}}>
-        <span className="mask-wrap"><span className="mask-text">One designer.</span></span><br />
+        <span className="mask-wrap"><span className="mask-text">Any stage.</span></span><br />
         <span className="mask-wrap" style={{paddingTop: "4px"}}><span className="mask-text"><em
-              style={{fontFamily: "'Instrument Serif'", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>Full
-              coverage.</em></span></span>
+              style={{fontFamily: "'Instrument Serif'", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>Start
+              to scale.</em></span></span>
       </h2>
     </div>
     <div className="value-grid">
@@ -365,6 +495,8 @@ export default async function Home() {
       </article>
     </div>
   </section>
+
+  <CapabilitiesOrbit items={capabilities} />
 
   {/* ABOUT */}
   <section id="about" className="wrap sys-reveal-trigger">
