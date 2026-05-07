@@ -1243,155 +1243,470 @@
       transform: scale(1);
     }
 
-    /* ─── CAPABILITIES CAROUSEL ─────────────────────────── */
+    @property --cap-x { syntax: "<number>"; inherits: false; initial-value: 50; }
+    @property --cap-y { syntax: "<number>"; inherits: false; initial-value: 24; }
+    @property --cap-scale { syntax: "<number>"; inherits: false; initial-value: 0.78; }
+    @property --cap-opacity { syntax: "<number>"; inherits: false; initial-value: 0.2; }
+    @property --cap-blur { syntax: "<length>"; inherits: false; initial-value: 8px; }
+    @property --cap-dot-x { syntax: "<number>"; inherits: false; initial-value: 50; }
+    @property --cap-dot-y { syntax: "<number>"; inherits: false; initial-value: 7; }
+    @property --cap-dot-scale { syntax: "<number>"; inherits: false; initial-value: 0.78; }
+    @property --cap-dot-opacity { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+    /* ─── CAPABILITIES ORBIT ─────────────────────────────── */
     #capabilities {
-      position: relative;
-      min-height: 250vh;
-      --cap-card-w: 320px;
-      --cap-card-gap: 32px;
+      --cap-stage-h: 100vh;
+      --cap-scroll-h: 250vh;
+      min-height: var(--cap-scroll-h);
       padding-top: 0 !important;
       padding-bottom: 0 !important;
+      overflow: visible;
+      isolation: isolate;
+      position: relative;
     }
 
-    .cap-stage {
+    #capabilities::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      right: auto;
+      bottom: -18vh;
+      width: 100vw;
+      height: min(46vh, 420px);
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, rgba(250, 248, 248, 0) 0%, rgba(250, 248, 248, 0.56) 52%, var(--bg) 78%, rgba(250, 248, 248, 0) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .cap-sticky {
       position: sticky;
       top: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+      height: var(--cap-stage-h);
+      min-height: 760px;
+      display: grid;
+      grid-template-rows: auto 1fr;
       align-items: center;
-      padding-top: clamp(96px, 12vh, 150px);
+      justify-items: center;
+      gap: clamp(4px, 0.8vh, 12px);
+      padding-top: clamp(118px, 14vh, 150px);
       box-sizing: border-box;
+      overflow: visible;
     }
 
-    .cap-head {
+    #capabilities .section-head {
+      position: relative;
+      z-index: 4;
+      margin: 0;
+      pointer-events: none;
+      opacity: var(--cap-exit-opacity, 1);
+      transform: translateY(var(--cap-exit-y, 0px));
+      transition: opacity 120ms linear;
+      will-change: opacity, transform;
+    }
+
+    .cap-system {
+      position: relative;
+      width: min(1280px, 100vw);
+      height: min(690px, 86vh);
+      min-height: 600px;
+      margin: 0 auto;
+      opacity: var(--cap-exit-opacity, 1);
+      transform: translateY(calc(clamp(16px, 3.5vh, 42px) + var(--cap-exit-y, 0px)));
+      transition: opacity 120ms linear;
+      will-change: transform, opacity;
+    }
+
+    .cap-system::before {
+      content: "";
+      position: absolute;
+      inset: 4% -6% 0;
+      background:
+        radial-gradient(ellipse 58% 42% at 50% 40%, rgba(195, 43, 90, 0.13), transparent 62%),
+        radial-gradient(ellipse 48% 38% at 68% 32%, rgba(103, 17, 134, 0.11), transparent 70%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(250, 248, 248, 0.94));
+      filter: blur(4px);
+      opacity: 0.72;
+      z-index: -2;
+    }
+
+    .cap-system::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 7%;
+      width: 124%;
+      height: 64%;
+      transform: translateX(-50%);
+      border-top: 1px solid transparent;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+      background:
+        linear-gradient(var(--bg), var(--bg)) padding-box,
+        linear-gradient(100deg, rgba(212, 83, 46, 0.05), rgba(195, 43, 90, 0.2), rgba(103, 17, 134, 0.18), rgba(103, 17, 134, 0.04)) border-box;
+      -webkit-mask-image:
+        linear-gradient(to bottom, black 0%, black 58%, rgba(0, 0, 0, 0.24) 74%, transparent 100%),
+        linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(to bottom, black 0%, black 58%, rgba(0, 0, 0, 0.24) 74%, transparent 100%),
+        linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+      mask-composite: intersect;
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .cap-orbit-mask {
+      position: absolute;
+      inset: 0 -14%;
+      overflow: hidden;
+      -webkit-mask-image:
+        linear-gradient(to bottom, black 0%, black 74%, rgba(0, 0, 0, 0.42) 88%, transparent 100%),
+        linear-gradient(to right, transparent 0%, black 11%, black 89%, transparent 100%);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(to bottom, black 0%, black 74%, rgba(0, 0, 0, 0.42) 88%, transparent 100%),
+        linear-gradient(to right, transparent 0%, black 11%, black 89%, transparent 100%);
+      mask-composite: intersect;
+      z-index: 1;
+    }
+
+    .cap-orbit {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform: translate3d(0, 0, 0);
+    }
+
+    .cap-item {
+      position: absolute;
+      left: calc(var(--cap-x, 50) * 1%);
+      top: calc(var(--cap-y, 24) * 1%);
+      width: clamp(300px, 31vw, 430px);
+      transform: translate(-50%, -50%) scale(var(--cap-scale, 0.78));
+      opacity: var(--cap-opacity, 0.2);
+      filter: blur(var(--cap-blur, 8px));
+      z-index: var(--cap-z, 1);
+      transition:
+        --cap-x 650ms cubic-bezier(.2, .7, .2, 1),
+        --cap-y 650ms cubic-bezier(.2, .7, .2, 1),
+        --cap-scale 650ms cubic-bezier(.2, .7, .2, 1),
+        --cap-opacity 500ms ease,
+        --cap-blur 500ms ease;
+      will-change: --cap-x, --cap-y, transform, opacity, filter;
+      pointer-events: none;
       text-align: center;
-      margin: 0 0 clamp(32px, 5vh, 60px);
+    }
+
+    .cap-item.is-active {
+      filter: blur(0);
+    }
+
+    .cap-node {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      min-height: 0;
+      border-radius: 24px;
+      background: #FFFFFF;
+      box-sizing: border-box;
+      box-shadow:
+        0 1px 3px 0 rgba(0, 0, 0, 0.12),
+        0 12px 16px -4px rgba(16, 24, 40, 0.08),
+        0 4px 6px -2px rgba(16, 24, 40, 0.03);
+      overflow: hidden;
+      transition: transform .5s cubic-bezier(.2, .7, .2, 1), box-shadow .5s;
+    }
+
+    .cap-item.is-active .cap-node {
+      transform: translateY(-2px);
+      box-shadow:
+        0 1px 3px 0 rgba(0, 0, 0, 0.14),
+        0 28px 56px -22px rgba(103, 17, 134, 0.24),
+        0 4px 6px -2px rgba(16, 24, 40, 0.04);
+    }
+
+    .cap-node::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(115deg, rgba(255, 255, 255, 0.72), transparent 35%),
+        repeating-linear-gradient(135deg, rgba(11, 11, 15, 0.025) 0 1px, transparent 1px 16px);
       pointer-events: none;
     }
 
-    .cap-track-wrap {
-      width: 100%;
-      overflow: hidden;
-      flex: 1 1 auto;
-      display: flex;
-      align-items: center;
+    .cap-node:has(img)::before {
+      opacity: 0;
     }
 
-    .cap-track {
-      display: flex;
-      gap: var(--cap-card-gap);
-      padding: 8px calc(50vw - var(--cap-card-w) / 2);
-      transform: translateX(
-        calc(var(--cap-active, 0) * -1 * (var(--cap-card-w) + var(--cap-card-gap)))
-      );
-      transition: transform 700ms cubic-bezier(.2, .7, .2, 1);
-      will-change: transform;
+    .cap-node::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      border: 1px solid #EAECF0;
+      box-shadow:
+        0 -3px 0 0 rgba(0, 0, 0, 0.05) inset,
+        0 0 0 1.5px #FFFFFF inset,
+        0 4px 2px 0 rgba(0, 0, 0, 0.06) inset,
+        0 0 24px 4px rgba(0, 0, 0, 0.04) inset;
+      z-index: 3;
     }
 
-    .cap-card {
-      flex: 0 0 var(--cap-card-w);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 32px 24px;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-      opacity: 0.4;
-      filter: blur(2px);
-      transform: scale(0.94) translateY(0);
+    .cap-dot-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .cap-path-dot {
+      position: absolute;
+      left: calc(var(--cap-dot-x, 50) * 1%);
+      top: calc(var(--cap-dot-y, 7) * 1%);
+      width: 28px;
+      height: 28px;
+      transform: translate(-50%, -50%) scale(var(--cap-dot-scale, 0.78));
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.68), 0 10px 24px rgba(103, 17, 134, 0.25);
+      opacity: var(--cap-dot-opacity, 0);
+      filter: blur(var(--cap-dot-blur, 0));
       transition:
-        opacity 400ms ease,
-        filter 400ms ease,
-        transform 500ms cubic-bezier(.2, .7, .2, 1);
+        --cap-dot-x 650ms cubic-bezier(.2, .7, .2, 1),
+        --cap-dot-y 650ms cubic-bezier(.2, .7, .2, 1),
+        --cap-dot-scale 500ms ease,
+        --cap-dot-opacity 350ms ease;
+      will-change: --cap-dot-x, --cap-dot-y, transform, opacity;
     }
 
-    .cap-card.is-active {
-      opacity: 1;
-      filter: blur(0);
-      transform: scale(1) translateY(-4px);
+    .cap-path-dot::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      background: var(--grad);
+      -webkit-mask: var(--cap-icon, radial-gradient(circle, #000 64%, transparent 66%)) center / contain no-repeat;
+      mask: var(--cap-icon, radial-gradient(circle, #000 64%, transparent 66%)) center / contain no-repeat;
     }
 
-    .cap-photo {
-      width: clamp(160px, 24vw, 220px);
-      aspect-ratio: 1;
-      border-radius: 50%;
+    .cap-mini {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      z-index: 1;
+      padding: 24px;
+    }
+
+    .cap-mini:has(img) {
+      padding: 0;
+    }
+
+    .cap-photo-placeholder {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 18px;
+      border: 1px solid rgba(11, 11, 15, 0.06);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.28)),
+        radial-gradient(circle at 72% 34%, rgba(195, 43, 90, 0.18), transparent 28%),
+        radial-gradient(circle at 28% 70%, rgba(103, 17, 134, 0.13), transparent 34%),
+        linear-gradient(180deg, rgba(243, 238, 240, 0.8), rgba(255, 255, 255, 0.56));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
       overflow: hidden;
-      margin-bottom: 20px;
-      background: rgba(0, 0, 0, 0.06);
     }
 
-    .cap-photo img {
+    .cap-photo-placeholder::before,
+    .cap-photo-placeholder::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .cap-photo-placeholder::before {
+      inset: 0;
+      background:
+        linear-gradient(115deg, rgba(255, 255, 255, 0.58), transparent 36%),
+        repeating-linear-gradient(135deg, rgba(11, 11, 15, 0.022) 0 1px, transparent 1px 16px);
+      z-index: 1;
+    }
+
+    .cap-photo-placeholder::after {
+      left: 50%;
+      top: 50%;
+      width: 62%;
+      height: 48%;
+      transform: translate(-50%, -50%);
+      border-radius: 16px;
+      border: 1px dashed rgba(11, 11, 15, 0.08);
+      background:
+        linear-gradient(90deg, rgba(11, 11, 15, 0.055), rgba(11, 11, 15, 0.025)),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.08));
+      z-index: 2;
+    }
+
+    .cap-photo-placeholder:has(img)::before,
+    .cap-photo-placeholder:has(img)::after {
+      opacity: 0;
+    }
+
+    .cap-photo-placeholder:has(img) {
+      border: 0;
+      border-radius: inherit;
+      background: none;
+      box-shadow: none;
+    }
+
+    .cap-photo-placeholder img {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
 
-    .cap-title {
+    .cap-side-copy {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .cap-side-copy strong {
+      display: block;
       font-family: var(--font-sans);
       font-weight: 700;
-      font-size: clamp(20px, 2.2vw, 26px);
-      line-height: 1.1;
+      font-size: 20px;
+      line-height: 1.08;
       letter-spacing: -0.02em;
       color: var(--ink);
-      margin: 0 0 10px;
+      transition: color 220ms ease;
     }
 
-    .cap-desc {
+    .cap-item.is-active .cap-side-copy strong {
+      white-space: nowrap;
+    }
+
+    .cap-side-copy span {
+      display: block;
+      max-width: 320px;
+      margin: 10px auto 0;
       font-family: var(--font-body);
-      font-size: 15px;
-      line-height: var(--body-copy-line, 1.55);
-      font-weight: var(--body-copy-weight, 400);
-      letter-spacing: var(--body-copy-spacing, normal);
-      color: var(--body-copy-color, rgba(0, 0, 0, 0.72));
-      margin: 0;
-      max-width: 30ch;
-    }
-
-    .cap-dots {
-      display: flex;
-      gap: 10px;
-      margin: clamp(24px, 4vh, 36px) 0 clamp(24px, 5vh, 40px);
-    }
-
-    .cap-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(0, 0, 0, 0.22);
-      transition: background 220ms ease, transform 220ms ease;
-    }
-
-    .cap-dot.is-active {
-      background: rgba(0, 0, 0, 0.78);
-      transform: scale(1.25);
+      font-size: 16px;
+      line-height: var(--body-copy-line);
+      font-weight: var(--body-copy-weight);
+      letter-spacing: var(--body-copy-spacing);
+      color: var(--body-copy-color);
     }
 
     @media (max-width: 900px) {
       #capabilities {
-        min-height: 240vh;
-        --cap-card-w: 78vw;
-        --cap-card-gap: 20px;
+        --cap-scroll-h: 240vh;
+      }
+
+      #capabilities::after {
+        bottom: -14vh;
+        height: min(38vh, 340px);
+      }
+
+      .cap-sticky {
+        min-height: 700px;
+        padding-top: clamp(88px, 11vh, 112px);
+        gap: 10px;
+      }
+
+      .cap-system {
+        height: 650px;
+        min-height: 650px;
+        transform: translateY(calc(clamp(14px, 3vh, 34px) + var(--cap-exit-y, 0px)));
+      }
+
+      .cap-system::after {
+        width: 150%;
+        top: 11%;
+        height: 48%;
+      }
+
+      .cap-item {
+        width: min(74vw, 360px);
+      }
+
+      .cap-node {
+        border-radius: 18px;
+      }
+
+      .cap-mini {
+        padding: 18px;
+      }
+
+      .cap-side-copy {
+        margin-top: 12px;
       }
     }
 
     @media (max-width: 720px) {
       #capabilities {
-        min-height: 230vh;
-        --cap-card-w: 80vw;
-        --cap-card-gap: 16px;
+        --cap-scroll-h: 230vh;
+        margin-top: -30px;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
       }
-      .cap-stage {
-        padding-top: clamp(110px, 16vh, 140px);
+
+      #capabilities::after {
+        bottom: -9vh;
+        height: 30vh;
+      }
+
+      #capabilities .section-head {
+        width: 100%;
+        text-align: center;
+        justify-self: center;
+      }
+
+      .cap-sticky {
+        min-height: 640px;
+        padding-top: 120px;
+        gap: 0;
+      }
+
+      .cap-system {
+        width: 100vw;
+        height: 610px;
+        min-height: 610px;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        transform: translateY(calc(clamp(0px, 1vh, 10px) + var(--cap-exit-y, 0px)));
+      }
+
+      .cap-orbit-mask {
+        inset: 0 -24%;
+        -webkit-mask-image:
+          linear-gradient(to bottom, black 0%, black 68%, rgba(0, 0, 0, 0.32) 84%, transparent 98%),
+          linear-gradient(to right, transparent 0%, black 24%, black 76%, transparent 100%);
+        mask-image:
+          linear-gradient(to bottom, black 0%, black 68%, rgba(0, 0, 0, 0.32) 84%, transparent 98%),
+          linear-gradient(to right, transparent 0%, black 24%, black 76%, transparent 100%);
+      }
+
+      .cap-system::after {
+        width: 168%;
+        top: 7%;
+        height: 46%;
+      }
+
+      .cap-side-copy span {
+        display: none;
+      }
+
+      .cap-item.is-active .cap-side-copy span {
+        display: block;
+        max-width: 270px;
+        font-size: 15px;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .cap-track,
-      .cap-card {
+      .cap-item,
+      .cap-path-dot {
         transition: none !important;
       }
     }
