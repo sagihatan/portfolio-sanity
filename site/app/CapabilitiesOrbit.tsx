@@ -28,6 +28,7 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
   const rafRef = useRef<number | null>(null);
   const progressRef = useRef(0);
   const currentIndexRef = useRef(0);
+  const lastTimeRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const maxIndex = Math.max(0, items.length - 1);
 
@@ -64,15 +65,30 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
       rafRef.current = null;
 
       const targetProgress = readProgress();
-      progressRef.current += (targetProgress - progressRef.current) * (reduceMotion ? 1 : 0.11);
+      const mobile = window.matchMedia("(max-width: 720px)").matches;
+      const tablet = window.matchMedia("(max-width: 900px)").matches;
+
+      const now = performance.now();
+      const dt = lastTimeRef.current != null
+        ? Math.min(0.05, (now - lastTimeRef.current) / 1000)
+        : 0;
+      lastTimeRef.current = now;
+
+      if (reduceMotion) {
+        progressRef.current = targetProgress;
+      } else {
+        const maxRate = mobile ? 0.30 : 0.55;
+        const lerpDelta = (targetProgress - progressRef.current) * 0.11;
+        const maxDelta = maxRate * dt;
+        const sign = Math.sign(lerpDelta);
+        progressRef.current += sign * Math.min(Math.abs(lerpDelta), maxDelta);
+      }
 
       if (Math.abs(targetProgress - progressRef.current) > 0.001) {
         rafRef.current = requestAnimationFrame(render);
       }
 
       const progress = progressRef.current;
-      const mobile = window.matchMedia("(max-width: 720px)").matches;
-      const tablet = window.matchMedia("(max-width: 900px)").matches;
       const exitStart = reduceMotion ? 1 : mobile ? 0.72 : 0.8;
       const exitProgress = clamp((progress - exitStart) / Math.max(0.001, 1 - exitStart), 0, 1);
       const easedExit = 1 - Math.pow(1 - exitProgress, 3);
