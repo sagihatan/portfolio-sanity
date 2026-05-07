@@ -1255,9 +1255,6 @@
 
     /* ─── CAPABILITIES ORBIT ─────────────────────────────── */
     #capabilities {
-      --cap-stage-h: 100vh;
-      --cap-scroll-h: 250vh;
-      min-height: var(--cap-scroll-h);
       padding-top: 0 !important;
       padding-bottom: 0 !important;
       overflow: visible;
@@ -1270,26 +1267,22 @@
       position: absolute;
       left: 50%;
       right: auto;
-      bottom: -18vh;
+      bottom: -10vh;
       width: 100vw;
-      height: min(46vh, 420px);
+      height: min(28vh, 280px);
       transform: translateX(-50%);
-      background: linear-gradient(180deg, rgba(250, 248, 248, 0) 0%, rgba(250, 248, 248, 0.56) 52%, var(--bg) 78%, rgba(250, 248, 248, 0) 100%);
+      background: linear-gradient(180deg, rgba(250, 248, 248, 0) 0%, rgba(250, 248, 248, 0.4) 50%, var(--bg) 80%, rgba(250, 248, 248, 0) 100%);
       pointer-events: none;
       z-index: 2;
     }
 
-    .cap-sticky {
-      position: sticky;
-      top: 0;
-      height: var(--cap-stage-h);
-      min-height: 760px;
+    .cap-stage {
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto auto auto;
       align-items: center;
       justify-items: center;
-      gap: clamp(4px, 0.8vh, 12px);
-      padding-top: clamp(118px, 14vh, 150px);
+      gap: clamp(8px, 1.5vh, 18px);
+      padding: clamp(96px, 12vh, 130px) 0 clamp(40px, 6vh, 64px);
       box-sizing: border-box;
       overflow: visible;
     }
@@ -1598,19 +1591,72 @@
       color: var(--body-copy-color);
     }
 
+    /* Nav arrows — visual styling cloned from .love-nav so the two carousels
+       feel like the same family. */
+    .cap-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: clamp(8px, 2vh, 18px);
+      z-index: 4;
+      position: relative;
+    }
+
+    .cap-nav button {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(234, 236, 240, 0.5);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 1px 2px 0 rgba(0, 0, 0, 0.1),
+        0 6px 10px -3px rgba(16, 24, 40, 0.07),
+        0 2px 4px -1px rgba(16, 24, 40, 0.03),
+        0 -1px 0 0 rgba(0, 0, 0, 0.04) inset,
+        0 0 0 1px rgba(255, 255, 255, 0.45) inset,
+        0 2px 1px 0 rgba(0, 0, 0, 0.04) inset,
+        0 0 16px 2px rgba(0, 0, 0, 0.03) inset;
+      transition: transform .3s, background .3s, box-shadow .3s, opacity .3s;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .cap-nav button:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow:
+        0 1px 3px 0 rgba(0, 0, 0, 0.12),
+        0 8px 16px -4px rgba(16, 24, 40, 0.1),
+        0 3px 5px -2px rgba(16, 24, 40, 0.04),
+        0 -1px 0 0 rgba(0, 0, 0, 0.04) inset,
+        0 0 0 1px rgba(255, 255, 255, 0.5) inset,
+        0 2px 1px 0 rgba(0, 0, 0, 0.04) inset,
+        0 0 16px 2px rgba(0, 0, 0, 0.03) inset;
+      transform: translateY(-2px);
+    }
+
+    .cap-nav button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .cap-nav button svg {
+      width: 16px;
+      height: 16px;
+    }
+
     @media (max-width: 900px) {
-      #capabilities {
-        --cap-scroll-h: 240vh;
-      }
-
       #capabilities::after {
-        bottom: -14vh;
-        height: min(38vh, 340px);
+        bottom: -8vh;
+        height: min(22vh, 220px);
       }
 
-      .cap-sticky {
-        min-height: 700px;
-        padding-top: clamp(88px, 11vh, 112px);
+      .cap-stage {
+        padding: clamp(88px, 11vh, 112px) 0 clamp(36px, 5vh, 56px);
         gap: 10px;
       }
 
@@ -1645,15 +1691,14 @@
 
     @media (max-width: 720px) {
       #capabilities {
-        --cap-scroll-h: 230vh;
         margin-top: -30px;
         padding-left: 0 !important;
         padding-right: 0 !important;
       }
 
       #capabilities::after {
-        bottom: -9vh;
-        height: 30vh;
+        bottom: -6vh;
+        height: 18vh;
       }
 
       #capabilities .section-head {
@@ -1662,9 +1707,8 @@
         justify-self: center;
       }
 
-      .cap-sticky {
-        min-height: 640px;
-        padding-top: 120px;
+      .cap-stage {
+        padding: 120px 0 36px;
         gap: 0;
       }
 

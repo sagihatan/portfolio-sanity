@@ -21,59 +21,24 @@ function clamp(n: number, min: number, max: number) {
 }
 
 export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
-  const sectionRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const orbitRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const renderedItems = useMemo(() => items.filter(Boolean), [items]);
   const count = renderedItems.length;
   const maxIndex = Math.max(0, count - 1);
 
-  // Scroll → discrete activeIndex. JS does nothing else with motion; the orbit
-  // smoothness comes from CSS @property transitions on --cap-* variables.
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section || count === 0) return;
-    let lastIdx = 0;
-    let raf: number | null = null;
+  function goPrev() {
+    setActiveIndex((i) => Math.max(0, i - 1));
+  }
+  function goNext() {
+    setActiveIndex((i) => Math.min(maxIndex, i + 1));
+  }
 
-    function update() {
-      raf = null;
-      if (!section) return;
-      const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const scrollable = rect.height - vh;
-      if (scrollable <= 0) return;
-
-      let progress: number;
-      if (rect.top > 0) progress = 0;
-      else if (rect.bottom < vh) progress = 1;
-      else progress = -rect.top / scrollable;
-
-      const idx = Math.min(maxIndex, Math.max(0, Math.round(progress * maxIndex)));
-      if (idx !== lastIdx) {
-        lastIdx = idx;
-        setActiveIndex(idx);
-      }
-    }
-
-    function onScroll() {
-      if (raf == null) raf = requestAnimationFrame(update);
-    }
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      if (raf != null) cancelAnimationFrame(raf);
-    };
-  }, [count, maxIndex]);
-
-  // Compute orbit positions for each card based on its integer offset from
-  // activeIndex. Set CSS variables; CSS transitions (via @property) interpolate
-  // the values smoothly when activeIndex flips.
+  // Recompute orbit positions whenever activeIndex (or viewport) changes.
+  // CSS @property declarations + transitions on .cap-item smooth the motion —
+  // JS only writes the target values, never animates between them.
   useEffect(() => {
     if (count === 0) return;
 
@@ -139,14 +104,49 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
     return () => window.removeEventListener("resize", applyPositions);
   }, [activeIndex, count, renderedItems]);
 
+  // Touch swipe — left/right gesture on the orbit advances cards. Vertical
+  // page scroll is preserved (we only act on swipes that are clearly horizontal).
+  useEffect(() => {
+    const orbit = orbitRef.current;
+    if (!orbit || count === 0) return;
+
+    let startX: number | null = null;
+    let startY: number | null = null;
+
+    function onTouchStart(e: TouchEvent) {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      if (startX === null || startY === null) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      startX = null;
+      startY = null;
+
+      // Require a clear horizontal motion: at least 40px and dominant over vertical
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      if (dx < 0) goNext();
+      else goPrev();
+    }
+
+    orbit.addEventListener("touchstart", onTouchStart, { passive: true });
+    orbit.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      orbit.removeEventListener("touchstart", onTouchStart);
+      orbit.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [count, maxIndex]);
+
   return (
     <section
       id="capabilities"
       className="wrap sys-reveal-trigger"
       aria-label="Product design capabilities"
-      ref={sectionRef}
     >
-      <div className="cap-sticky">
+      <div className="cap-stage">
         <div className="section-head">
           <h2 className="section-title">
             <span className="mask-wrap"><span className="mask-text">One designer.</span></span><br />
@@ -171,7 +171,7 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
             ))}
           </div>
 
-          <div className="cap-orbit-mask" aria-hidden="true">
+          <div className="cap-orbit-mask" aria-hidden="true" ref={orbitRef}>
             <div className="cap-orbit">
               {renderedItems.map((item, i) => (
                 <article
@@ -206,6 +206,29 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="cap-nav">
+          <button
+            type="button"
+            aria-label="Previous capability"
+            onClick={goPrev}
+            disabled={activeIndex === 0}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Next capability"
+            onClick={goNext}
+            disabled={activeIndex === maxIndex}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
         </div>
       </div>
     </section>
