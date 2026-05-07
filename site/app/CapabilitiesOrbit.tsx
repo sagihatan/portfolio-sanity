@@ -226,9 +226,10 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
     };
   }, [maxIndex, renderedItems]);
 
-  // Scoped scroll-snap: pulls scroll position to the nearest card when the user
-  // comes to rest inside the section. No effect on hero / services / about — the
-  // listener checks the user is within the card range before snapping.
+  // Scoped scroll-snap: pulls scroll position to the nearest card *only* when
+  // the user comes to rest strictly within the card range inside the section.
+  // No buffer at the edges — we never pull users in from hero or back from
+  // about. Other sections are completely untouched.
   useEffect(() => {
     const section = sectionRef.current;
     if (!section || renderedItems.length === 0) return undefined;
@@ -239,8 +240,8 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
     const mobileMQ = window.matchMedia("(max-width: 720px)");
     const tabletMQ = window.matchMedia("(max-width: 900px)");
 
-    let snapTimer: ReturnType<typeof setTimeout> | null = null;
     let lastSnapTarget: number | null = null;
+    let scrollDebounce: ReturnType<typeof setTimeout> | null = null;
 
     function tryScrollSnap() {
       const rect = section!.getBoundingClientRect();
@@ -257,13 +258,15 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
       const lastPos = sectionDocTop + ((startVH + (count - 1) * stepVH) * vh) / 100;
       const currentY = window.scrollY;
 
-      // Only act inside the card range. Past the last card don't pull back —
-      // user is heading to the about section.
-      const buffer = vh * 0.12;
-      if (currentY < firstPos - buffer || currentY > lastPos + buffer) {
+      // Strict range — must be inside the card range, not in any buffer zone
+      if (currentY < firstPos || currentY > lastPos) {
         lastSnapTarget = null;
         return;
       }
+
+      // We just snapped here — don't re-trigger during the smooth-scroll's
+      // tail of scroll events
+      if (lastSnapTarget != null && Math.abs(currentY - lastSnapTarget) < 5) return;
 
       let nearest = firstPos;
       for (let i = 1; i < count; i++) {
@@ -273,25 +276,35 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
         }
       }
 
-      // We just snapped to this position — don't re-trigger during the
-      // smooth-scroll's tail of scroll events
-      if (lastSnapTarget != null && Math.abs(currentY - lastSnapTarget) < 5) return;
       if (Math.abs(nearest - currentY) < 3) return;
 
       lastSnapTarget = Math.round(nearest);
       window.scrollTo({ top: lastSnapTarget, behavior: "smooth" });
     }
 
-    function onScroll() {
-      if (snapTimer != null) clearTimeout(snapTimer);
-      snapTimer = setTimeout(tryScrollSnap, 180);
+    // scrollend (Safari 17+, Chrome 114+) fires once when scrolling truly
+    // stops, including after iOS momentum. Falls back to a 220ms debounced
+    // scroll listener on older browsers.
+    const supportsScrollEnd = "onscrollend" in window;
+
+    function onScrollDebounced() {
+      if (scrollDebounce != null) clearTimeout(scrollDebounce);
+      scrollDebounce = setTimeout(tryScrollSnap, 220);
     }
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    if (supportsScrollEnd) {
+      window.addEventListener("scrollend", tryScrollSnap, { passive: true });
+    } else {
+      window.addEventListener("scroll", onScrollDebounced, { passive: true });
+    }
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (snapTimer != null) clearTimeout(snapTimer);
+      if (supportsScrollEnd) {
+        window.removeEventListener("scrollend", tryScrollSnap);
+      } else {
+        window.removeEventListener("scroll", onScrollDebounced);
+      }
+      if (scrollDebounce != null) clearTimeout(scrollDebounce);
     };
   }, [renderedItems]);
 
