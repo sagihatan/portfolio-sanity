@@ -229,8 +229,24 @@
     }
 
     /* Invisible starts */
+    @keyframes reveal-fallback {
+      0%,
+      96% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
     body.init-load #topnav {
       visibility: hidden;
+    }
+
+    body.init-load:not(.chars-ready) .hero-title .mask-text {
+      opacity: 0;
+      animation: reveal-fallback 5000ms steps(1, end) forwards;
     }
 
     body.init-load .hero-sub,
@@ -288,6 +304,39 @@
     body.init-load .hero-stage {
       animation: stage-rise 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
       animation-delay: 2400ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body.init-load #topnav,
+      body.init-load .hero-bg video,
+      body.init-load .hero-title .char,
+      body.init-load .hero-sub,
+      body.init-load .hero-cta,
+      body.init-load .hero .proof .label,
+      body.init-load .hero .proof .logos,
+      body.init-load .hero-stage,
+      body.init-load .btn-primary::after {
+        animation: none !important;
+      }
+
+      body.init-load #topnav {
+        visibility: visible;
+      }
+
+      body.init-load .hero-title .char,
+      body.init-load .hero-sub,
+      body.init-load .hero-cta,
+      body.init-load .hero .proof .label,
+      body.init-load .hero .proof .logos,
+      body.init-load .hero-stage,
+      body.init-load .hero-bg video {
+        opacity: 1;
+      }
+
+      body.init-load:not(.chars-ready) .hero-title .mask-text {
+        opacity: 1;
+        animation: none;
+      }
     }
 
     /* Button Shimmer */
