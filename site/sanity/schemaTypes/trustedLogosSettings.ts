@@ -1,14 +1,14 @@
 import { CogIcon } from '@sanity/icons'
 import { defineField, defineType } from 'sanity'
 
-export const siteSettings = defineType({
-  name: 'siteSettings',
-  title: 'Site settings',
+export const trustedLogosSettings = defineType({
+  name: 'trustedLogosSettings',
+  title: 'Trusted logos',
   type: 'document',
   icon: CogIcon,
   initialValue: {
-    title: 'Site settings',
-    trustedLogos: [
+    title: 'Trusted logos',
+    logos: [
       {
         _type: 'trustedLogo',
         name: 'Voltify',
@@ -66,42 +66,15 @@ export const siteSettings = defineType({
       name: 'title',
       title: 'Title',
       type: 'string',
-      initialValue: 'Site settings',
+      initialValue: 'Trusted logos',
       readOnly: true,
       hidden: true,
     }),
     defineField({
-      name: 'showHeroStage',
-      title: 'Show hero video stage',
-      description: 'Turn this on when the hero-stage video is ready to publish.',
-      type: 'boolean',
-      initialValue: false,
-    }),
-    defineField({
-      name: 'heroStageVideo',
-      title: 'Hero stage video',
-      description: 'Upload the video shown inside the hero-stage frame. MP4 or WebM is recommended.',
-      type: 'file',
-      options: {
-        accept: 'video/mp4,video/webm,video/quicktime',
-      },
-      validation: (rule) =>
-        rule.custom((value, context) => {
-          const parent = context.parent as { showHeroStage?: boolean } | undefined
-
-          if (parent?.showHeroStage && !value) {
-            return 'Upload a hero stage video before turning this on'
-          }
-
-          return true
-        }),
-    }),
-    defineField({
-      name: 'trustedLogos',
+      name: 'logos',
       title: 'Trusted logos',
-      description: 'Logos shown in the "Trusted by teams at" strip. Use either a Sanity upload or a local logo URL such as /assets/logos/wisor.png.',
+      description: 'Logos shown in the "Trusted by teams at" strip. Drag to reorder.',
       type: 'array',
-      hidden: true,
       of: [
         defineField({
           name: 'trustedLogo',
@@ -196,78 +169,11 @@ export const siteSettings = defineType({
         }),
       ],
     }),
-    defineField({
-      name: 'capabilities',
-      title: 'Capabilities carousel',
-      description: 'Items shown in the scroll-driven capabilities orbit. Drag to reorder; upload an image for each card.',
-      type: 'array',
-      hidden: true,
-      of: [
-        defineField({
-          name: 'capability',
-          title: 'Capability',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'title',
-              title: 'Title',
-              type: 'string',
-              validation: (rule) => rule.required(),
-            }),
-            defineField({
-              name: 'description',
-              title: 'Description',
-              type: 'string',
-              validation: (rule) => rule.required(),
-            }),
-            defineField({
-              name: 'image',
-              title: 'Image',
-              description: 'Image shown inside the carousel card.',
-              type: 'image',
-              options: {
-                hotspot: true,
-              },
-            }),
-            defineField({
-              name: 'altText',
-              title: 'Alt text',
-              description: 'Used for accessibility. If empty, the capability title is used.',
-              type: 'string',
-            }),
-            defineField({
-              name: 'enabled',
-              title: 'Enabled',
-              type: 'boolean',
-              initialValue: true,
-            }),
-          ],
-          preview: {
-            select: {
-              title: 'title',
-              subtitle: 'description',
-              media: 'image',
-              enabled: 'enabled',
-            },
-            prepare({ title, subtitle, media, enabled }) {
-              return {
-                title: title || 'Capability',
-                subtitle: enabled === false ? 'Disabled' : subtitle,
-                media,
-              }
-            },
-          },
-        }),
-      ],
-    }),
   ],
   preview: {
-    select: {
-      title: 'title',
-    },
-    prepare({ title }) {
+    prepare() {
       return {
-        title: title || 'Site settings',
+        title: 'Trusted logos',
       }
     },
   },
