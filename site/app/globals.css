@@ -1246,7 +1246,7 @@
     /* ─── CAPABILITIES ORBIT ─────────────────────────────── */
     #capabilities {
       --cap-stage-h: 100vh;
-      --cap-scroll-h: 215vh;
+      --cap-scroll-h: 360vh;
       min-height: var(--cap-scroll-h);
       padding-top: 0 !important;
       padding-bottom: 0 !important;
@@ -1580,7 +1580,7 @@
 
     @media (max-width: 900px) {
       #capabilities {
-        --cap-scroll-h: 205vh;
+        --cap-scroll-h: 360vh;
       }
 
       #capabilities::after {
@@ -1625,7 +1625,7 @@
 
     @media (max-width: 720px) {
       #capabilities {
-        --cap-scroll-h: 165vh;
+        --cap-scroll-h: 380vh;
         margin-top: -30px;
         padding-left: 0 !important;
         padding-right: 0 !important;

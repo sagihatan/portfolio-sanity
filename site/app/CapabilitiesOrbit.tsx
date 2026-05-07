@@ -89,7 +89,7 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
         const eased = t * t * (3 - 2 * t);
         return idx + eased;
       }
-      const holdRatio = mobile ? 0.34 : 0.28;
+      const holdRatio = mobile ? 0.45 : 0.40;
       const raw = reduceMotion
         ? 0
         : progress < exitStart
