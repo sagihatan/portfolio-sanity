@@ -112,7 +112,7 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
         const angle = 90 - distance * stepDeg;
         const rad = (angle * Math.PI) / 180;
         const x = 50 + Math.cos(rad) * rx;
-        const y = (isMobile ? 66 : 74) - Math.sin(rad) * ry;
+        const y = (isMobile ? 76 : 74) - Math.sin(rad) * ry;
         const dotX = 50 + Math.cos(rad) * dotRx;
         const dotY = dotCenterY - Math.sin(rad) * dotRy;
         const focusness = clamp(1 - abs / visibleDistance, 0, 1);
