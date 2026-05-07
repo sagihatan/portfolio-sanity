@@ -31,7 +31,6 @@
 
     html {
       scroll-behavior: smooth;
-      scroll-snap-type: y proximity;
     }
 
     /* Anchor scroll so clicking nav lands the headline right below the navbar,
@@ -1248,8 +1247,6 @@
     #capabilities {
       --cap-stage-h: 100vh;
       --cap-scroll-h: 360vh;
-      --cap-snap-start: 34vh;
-      --cap-snap-step: 36vh;
       min-height: var(--cap-scroll-h);
       padding-top: 0 !important;
       padding-bottom: 0 !important;
@@ -1257,29 +1254,6 @@
       isolation: isolate;
       position: relative;
     }
-
-    .cap-snap-layer {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .cap-snap-marker {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      scroll-snap-align: start;
-      scroll-snap-stop: normal;
-    }
-
-    .cap-snap-marker:nth-child(1) { top: var(--cap-snap-start); }
-    .cap-snap-marker:nth-child(2) { top: calc(var(--cap-snap-start) + var(--cap-snap-step) * 1); }
-    .cap-snap-marker:nth-child(3) { top: calc(var(--cap-snap-start) + var(--cap-snap-step) * 2); }
-    .cap-snap-marker:nth-child(4) { top: calc(var(--cap-snap-start) + var(--cap-snap-step) * 3); }
-    .cap-snap-marker:nth-child(5) { top: calc(var(--cap-snap-start) + var(--cap-snap-step) * 4); }
 
     #capabilities::after {
       content: "";
@@ -1608,8 +1582,6 @@
     @media (max-width: 900px) {
       #capabilities {
         --cap-scroll-h: 360vh;
-        --cap-snap-start: 30vh;
-        --cap-snap-step: 36.8vh;
       }
 
       #capabilities::after {
@@ -1655,8 +1627,6 @@
     @media (max-width: 720px) {
       #capabilities {
         --cap-scroll-h: 380vh;
-        --cap-snap-start: 40vh;
-        --cap-snap-step: 34.5vh;
         margin-top: -30px;
         padding-left: 0 !important;
         padding-right: 0 !important;
