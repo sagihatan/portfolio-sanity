@@ -21,6 +21,7 @@ function clamp(n: number, min: number, max: number) {
 }
 
 export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLElement | null)[]>([]);
   const dotRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const orbitRef = useRef<HTMLDivElement | null>(null);
@@ -35,6 +36,56 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
   function goNext() {
     setActiveIndex((i) => Math.min(maxIndex, i + 1));
   }
+
+  // Desktop & tablet: vertical scroll drives activeIndex. Mobile (≤720px) uses
+  // arrow + swipe nav so the page scroll isn't hijacked. The CSS keeps the
+  // section sticky on desktop and normal-flow on mobile, so this listener's
+  // `scrollable` calculation naturally is non-positive on mobile and exits
+  // early — but we also gate it explicitly on the media query for clarity.
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || count === 0) return;
+    const mq = window.matchMedia("(max-width: 720px)");
+    let lastIdx = 0;
+    let raf: number | null = null;
+
+    function update() {
+      raf = null;
+      if (mq.matches) return; // mobile: nav handled by arrows + swipe
+      const s = section;
+      if (!s) return;
+      const rect = s.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const scrollable = rect.height - vh;
+      if (scrollable <= 0) return;
+
+      let progress: number;
+      if (rect.top > 0) progress = 0;
+      else if (rect.bottom < vh) progress = 1;
+      else progress = -rect.top / scrollable;
+
+      const idx = Math.min(maxIndex, Math.max(0, Math.round(progress * maxIndex)));
+      if (idx !== lastIdx) {
+        lastIdx = idx;
+        setActiveIndex(idx);
+      }
+    }
+
+    function onScroll() {
+      if (raf == null) raf = requestAnimationFrame(update);
+    }
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    mq.addEventListener("change", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      mq.removeEventListener("change", onScroll);
+      if (raf != null) cancelAnimationFrame(raf);
+    };
+  }, [count, maxIndex]);
 
   // Recompute orbit positions whenever activeIndex (or viewport) changes.
   // CSS @property declarations + transitions on .cap-item smooth the motion —
@@ -145,6 +196,7 @@ export default function CapabilitiesOrbit({ items }: CapabilitiesOrbitProps) {
       id="capabilities"
       className="wrap sys-reveal-trigger"
       aria-label="Product design capabilities"
+      ref={sectionRef}
     >
       <div className="cap-stage">
         <div className="section-head">

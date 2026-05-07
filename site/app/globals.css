@@ -1254,7 +1254,13 @@
     @property --cap-dot-opacity { syntax: "<number>"; inherits: false; initial-value: 0; }
 
     /* ─── CAPABILITIES ORBIT ─────────────────────────────── */
+    /* Desktop + tablet: sticky scroll-driven orbit (vertical scroll changes
+       the active card via @property transitions on .cap-item / .cap-path-dot).
+       Mobile (≤720px): switches to normal-flow with arrow + swipe nav. */
     #capabilities {
+      --cap-stage-h: 100vh;
+      --cap-scroll-h: 250vh;
+      min-height: var(--cap-scroll-h);
       padding-top: 0 !important;
       padding-bottom: 0 !important;
       overflow: visible;
@@ -1267,25 +1273,30 @@
       position: absolute;
       left: 50%;
       right: auto;
-      bottom: -10vh;
+      bottom: -18vh;
       width: 100vw;
-      height: min(28vh, 280px);
+      height: min(46vh, 420px);
       transform: translateX(-50%);
-      background: linear-gradient(180deg, rgba(250, 248, 248, 0) 0%, rgba(250, 248, 248, 0.4) 50%, var(--bg) 80%, rgba(250, 248, 248, 0) 100%);
+      background: linear-gradient(180deg, rgba(250, 248, 248, 0) 0%, rgba(250, 248, 248, 0.56) 52%, var(--bg) 78%, rgba(250, 248, 248, 0) 100%);
       pointer-events: none;
       z-index: 2;
     }
 
     .cap-stage {
+      position: sticky;
+      top: 0;
+      height: var(--cap-stage-h);
+      min-height: 760px;
       display: grid;
-      grid-template-rows: auto auto auto;
+      grid-template-rows: auto 1fr;
       align-items: center;
       justify-items: center;
-      gap: clamp(8px, 1.5vh, 18px);
-      padding: clamp(96px, 12vh, 130px) 0 clamp(40px, 6vh, 64px);
+      gap: clamp(4px, 0.8vh, 12px);
+      padding-top: clamp(118px, 14vh, 150px);
       box-sizing: border-box;
       overflow: visible;
     }
+
 
     #capabilities .section-head {
       position: relative;
@@ -1592,9 +1603,10 @@
     }
 
     /* Nav arrows — visual styling cloned from .love-nav so the two carousels
-       feel like the same family. */
+       feel like the same family. Hidden by default; mobile @media shows them.
+       (Vertical scroll IS the navigation on desktop/tablet.) */
     .cap-nav {
-      display: flex;
+      display: none;
       justify-content: center;
       gap: 12px;
       margin-top: clamp(8px, 2vh, 18px);
@@ -1650,13 +1662,18 @@
     }
 
     @media (max-width: 900px) {
+      #capabilities {
+        --cap-scroll-h: 240vh;
+      }
+
       #capabilities::after {
-        bottom: -8vh;
-        height: min(22vh, 220px);
+        bottom: -14vh;
+        height: min(38vh, 340px);
       }
 
       .cap-stage {
-        padding: clamp(88px, 11vh, 112px) 0 clamp(36px, 5vh, 56px);
+        min-height: 700px;
+        padding-top: clamp(88px, 11vh, 112px);
         gap: 10px;
       }
 
@@ -1690,7 +1707,10 @@
     }
 
     @media (max-width: 720px) {
+      /* Mobile breaks the sticky scroll-driven model: the orbit becomes
+         normal-flow with arrows + swipe instead of vertical-scroll-driven. */
       #capabilities {
+        min-height: 0;
         margin-top: -30px;
         padding-left: 0 !important;
         padding-right: 0 !important;
@@ -1708,8 +1728,17 @@
       }
 
       .cap-stage {
-        padding: 120px 0 36px;
+        position: static;
+        height: auto;
+        min-height: 0;
+        grid-template-rows: auto auto auto;
+        padding: 120px 0 40px;
         gap: 0;
+      }
+
+      .cap-nav {
+        display: flex;
+        margin-top: 48px;
       }
 
       .cap-system {
