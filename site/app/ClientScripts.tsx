@@ -443,7 +443,7 @@ export default function ClientScripts() {
       splitChars('#love .love-title .mask-text');
       splitChars('#cta .cta-title .mask-text');
 
-      document.body.classList.add('init-load');
+      document.body.classList.add('chars-ready');
 
       // Clean up nav animation so compact state can use backdrop-filter
       const topnav = document.getElementById('topnav');
