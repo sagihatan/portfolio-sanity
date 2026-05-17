@@ -3469,13 +3469,13 @@
       }
 
       #about .about-sig .mask-wrap {
-        display: inline-block !important;
+        display: none !important;
       }
 
       #about .about-sig-img {
-        display: none;
+        display: inline-block;
         height: auto;
-        width: 32vw;
+        width: min(280px, 60vw);
         max-width: 100%;
       }
 
