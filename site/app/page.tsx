@@ -279,7 +279,10 @@ export default async function Home() {
     </div>
   </nav>
   <div className="hero-bg" aria-hidden="true">
-    <video className="depth-bg" src="/assets/hero_bg.mp4" autoPlay muted loop playsInline></video>
+    <video className="depth-bg" autoPlay muted loop playsInline preload="auto" poster="/assets/hero_bg_poster.webp">
+      <source src="/assets/hero_bg_v3.webm" type="video/webm" />
+      <source src="/assets/hero_bg_v3.mp4" type="video/mp4" />
+    </video>
   </div>
   <div className="nav-spacer"></div>
 
@@ -334,8 +337,8 @@ export default async function Home() {
     </div>
     <div className="value-grid">
       <article className="v-card fade-el" style={{"--stg": "2"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card1.mp4?v=2" muted playsInline loop preload="metadata"
-            data-card-video></video></div>
+        <div className="v-video"><video src="/assets/card1_v3.mp4" muted playsInline loop preload="metadata"
+            poster="/assets/card1_poster.webp" data-card-video></video></div>
         <div className="v-body">
           <div className="v-tag">For founders</div>
           <h3 className="v-title">Build from scratch</h3>
@@ -344,8 +347,8 @@ export default async function Home() {
         <span className="corner-glow"></span>
       </article>
       <article className="v-card fade-el" style={{"--stg": "3"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card2.mp4?v=2" muted playsInline loop preload="metadata"
-            data-card-video></video></div>
+        <div className="v-video"><video src="/assets/card2_v3.mp4" muted playsInline loop preload="metadata"
+            poster="/assets/card2_poster.webp" data-card-video></video></div>
         <div className="v-body">
           <div className="v-tag">For existing products</div>
           <h3 className="v-title">Make it better</h3>
@@ -354,8 +357,8 @@ export default async function Home() {
         <span className="corner-glow"></span>
       </article>
       <article className="v-card fade-el" style={{"--stg": "4"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card3.mp4?v=2" muted playsInline loop preload="metadata"
-            data-card-video></video></div>
+        <div className="v-video"><video src="/assets/card3_v3.mp4" muted playsInline loop preload="metadata"
+            poster="/assets/card3_poster.webp" data-card-video></video></div>
         <div className="v-body">
           <div className="v-tag">For a boost</div>
           <h3 className="v-title">Join your team</h3>
@@ -382,7 +385,10 @@ export default async function Home() {
               Hatan</span></span><img className="about-sig-img" src="/assets/signature_mobile.svg" alt="Sagi Hatan" /></div>
       </div>
       <div className="about-portrait">
-        <img src="/assets/profile.png" alt="Sagi Hatan" width="976" height="565" loading="lazy" decoding="async" />
+        <picture>
+          <source srcSet="/assets/profile.webp" type="image/webp" />
+          <img src="/assets/profile.png" alt="Sagi Hatan" width="976" height="565" loading="lazy" decoding="async" />
+        </picture>
       </div>
     </div>
   </section>
@@ -488,8 +494,11 @@ export default async function Home() {
   <section id="cta" className="wrap sys-reveal-trigger">
     <div className="cta-box">
       <div className="cta-visual">
-        <video src="/assets/cta.mp4" muted playsInline loop preload="metadata" data-card-video
-          style={{width: "100%", height: "100%", objectFit: "contain", borderRadius: "16px"}}></video>
+        <video muted playsInline loop preload="metadata" data-card-video poster="/assets/cta_poster.webp"
+          style={{width: "100%", height: "100%", objectFit: "contain", borderRadius: "16px"}}>
+          <source src="/assets/cta_v3.webm" type="video/webm" />
+          <source src="/assets/cta_v3.mp4" type="video/mp4" />
+        </video>
       </div>
       <h2 className="cta-title"><span className="mask-wrap"><span className="mask-text">Ready <em>when</em></span></span><span
           className="cta-brk"></span> <span className="mask-wrap"><span className="mask-text">you are</span></span></h2>
