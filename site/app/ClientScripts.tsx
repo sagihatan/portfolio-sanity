@@ -27,61 +27,6 @@ export default function ClientScripts() {
     }
     applyTweaks();
 
-    // CARD VIDEO: play-once on view, replay on hover
-    (function () {
-      const vids = document.querySelectorAll('[data-card-video]');
-      const played = new WeakSet();
-      const tryPlay = (v) => {
-        try {
-          const p = v.play();
-          if (p && p.then) p.then(() => played.add(v)).catch(() => { });
-          else played.add(v);
-        } catch (e) { }
-      };
-
-      // Force iOS Safari to paint the first frame (it otherwise shows blank
-      // background until play() actually resolves, which can be delayed on
-      // Low Power Mode or weak connections)
-      vids.forEach(v => {
-        const paintFirstFrame = () => {
-          try { v.currentTime = 0.05; } catch (e) { }
-        };
-        if (v.readyState >= 1) paintFirstFrame();
-        else v.addEventListener('loadedmetadata', paintFirstFrame, { once: true });
-      });
-
-      const io = new IntersectionObserver((entries) => {
-        for (const en of entries) {
-          const v = en.target;
-          if (en.isIntersecting && !played.has(v)) {
-            v.currentTime = 0;
-            tryPlay(v);
-          }
-        }
-      }, { threshold: 0.25 });
-      vids.forEach(v => {
-        io.observe(v);
-        const card = v.closest('.v-card') || v.closest('.cta-visual');
-        if (card) {
-          card.addEventListener('mouseenter', () => {
-            v.currentTime = 0;
-            tryPlay(v);
-          });
-        }
-      });
-
-      // iOS Low Power Mode safety net: first touch anywhere retries all videos
-      function onFirstInteraction() {
-        vids.forEach(v => {
-          if (v.paused) tryPlay(v);
-        });
-        window.removeEventListener('touchstart', onFirstInteraction);
-        window.removeEventListener('click', onFirstInteraction);
-      }
-      window.addEventListener('touchstart', onFirstInteraction, { passive: true });
-      window.addEventListener('click', onFirstInteraction);
-    })();
-
     // NAV scroll — gate class toggle by state change to avoid layout churn
     (function () {
       const nav = document.getElementById('topnav');
