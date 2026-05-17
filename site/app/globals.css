@@ -3475,7 +3475,7 @@
       #about .about-sig-img {
         display: inline-block;
         height: auto;
-        width: min(280px, 60vw);
+        width: min(160px, 38vw);
         max-width: 100%;
       }
 
