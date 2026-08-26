@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -11,6 +11,15 @@ export const metadata: Metadata = {
     images: ["/assets/og-image.jpg"],
     type: "website",
   },
+};
+
+// The site is light-only by design. Without an explicit declaration, force-dark
+// engines (Google app's Auto Dark Mode on iOS, Chrome Auto Dark Theme, Samsung
+// Internet, Android WebViews) rewrite our colors while leaving video and images
+// untouched, which breaks the design. `only light` forbids that transformation.
+export const viewport: Viewport = {
+  colorScheme: "only light",
+  themeColor: "#FAF8F8",
 };
 
 export default function RootLayout({
