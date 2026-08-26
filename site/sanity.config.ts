@@ -21,8 +21,29 @@ export default defineConfig({
               .title('Site settings')
               .schemaType('siteSettings')
               .child(S.document().schemaType('siteSettings').documentId('siteSettings').title('Site settings')),
+            S.listItem()
+              .title('Trusted logos')
+              .schemaType('trustedLogosSettings')
+              .child(
+                S.document()
+                  .schemaType('trustedLogosSettings')
+                  .documentId('trustedLogosSettings')
+                  .title('Trusted logos')
+              ),
+            S.listItem()
+              .title('Capabilities carousel')
+              .schemaType('capabilitiesSettings')
+              .child(
+                S.document()
+                  .schemaType('capabilitiesSettings')
+                  .documentId('capabilitiesSettings')
+                  .title('Capabilities carousel')
+              ),
             S.divider(),
-            ...S.documentTypeListItems().filter((item) => item.getId() !== 'siteSettings'),
+            ...S.documentTypeListItems().filter(
+              (item) =>
+                !['siteSettings', 'trustedLogosSettings', 'capabilitiesSettings'].includes(item.getId() || '')
+            ),
           ]),
     }),
     visionTool(),

@@ -44,6 +44,39 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
       maxWidth,
       verticalOffset,
       "logoUrl": coalesce(logo.asset->url, localLogoUrl)
+    },
+    "capabilities": capabilities[coalesce(enabled, true) == true] {
+      _key,
+      title,
+      description,
+      image,
+      altText
+    }
+  }
+`)
+
+export const TRUSTED_LOGOS_SETTINGS_QUERY = defineQuery(`
+  *[_type == "trustedLogosSettings"][0] {
+    "logos": logos[coalesce(enabled, true) == true && (defined(logo.asset) || defined(localLogoUrl))] {
+      _key,
+      name,
+      altText,
+      displayHeight,
+      maxWidth,
+      verticalOffset,
+      "logoUrl": coalesce(logo.asset->url, localLogoUrl)
+    }
+  }
+`)
+
+export const CAPABILITIES_SETTINGS_QUERY = defineQuery(`
+  *[_type == "capabilitiesSettings"][0] {
+    "items": items[coalesce(enabled, true) == true] {
+      _key,
+      title,
+      description,
+      image,
+      altText
     }
   }
 `)
