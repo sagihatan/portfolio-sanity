@@ -1,4 +1,6 @@
     :root {
+      /* Light-only by design; blocks browser force-dark from rewriting our palette. */
+      color-scheme: only light;
       interpolate-size: allow-keywords;
       --bg: #FAF8F8;
       --bg-2: #F3EEF0;
