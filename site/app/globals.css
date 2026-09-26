@@ -937,16 +937,6 @@
       pointer-events: none;
     }
 
-    /* A soft hold: scrolls that come to rest near the stage settle it in the
-       centre, and a fast flick stops there once. Only while the reel is live. */
-    html.has-stage-snap {
-      scroll-snap-type: y proximity;
-    }
-
-    .hero-stage {
-      scroll-snap-align: center;
-      scroll-snap-stop: always;
-    }
 
     .hero-stage {
       margin-top: 72px;
