@@ -68,10 +68,11 @@ export default function HeroStage() {
       const top = slot!.getBoundingClientRect().bottom - h; // unscaled
       const offCentre = top + h / 2 - innerHeight / 2;
 
-      // Hero copy: fully visible at the page top, gone once the stage is centred.
+      // Hero copy: fully visible at the page top, gone 60% of the way to the
+      // stage being centred, so nothing competes with it once it's in focus.
       // filter, not opacity: the hero's intro animations already own opacity.
       const centredAt = offCentre + scrollY;
-      const fade = centredAt > 0 ? Math.min(1, Math.max(0, scrollY / centredAt)) : 0;
+      const fade = centredAt > 0 ? Math.min(1, Math.max(0, scrollY / (centredAt * 0.6))) : 0;
       for (const el of copy) el.style.filter = `opacity(${1 - fade})`;
 
       // Stage: widens toward the screen edges (minus the gutter) as it nears the

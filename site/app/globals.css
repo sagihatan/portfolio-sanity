@@ -897,7 +897,7 @@
       /* line up with the Services cards: section padding 32px + grid padding 8px */
       padding: 0 40px;
       /* side margin the stage keeps when it widens on scroll (HeroStage.tsx) */
-      --stage-gutter: 32px;
+      --stage-gutter: 96px;
       display: grid;
       grid-template-rows: 0fr;
       transition: grid-template-rows 800ms cubic-bezier(0.22, 1, 0.36, 1);
