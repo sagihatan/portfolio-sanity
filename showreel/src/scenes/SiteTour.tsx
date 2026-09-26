@@ -114,7 +114,7 @@ export const SiteTour: React.FC = () => {
   const plan = buildPlan(W, H, vertical);
   return (
     <AbsoluteFill style={{ background: "#F4F0F1" }}>
-      <CameraMotionBlur samples={6} shutterAngle={180}>
+      <CameraMotionBlur samples={16} shutterAngle={180}>
         <World plan={plan} />
       </CameraMotionBlur>
       <Grain opacity={0.06} />
