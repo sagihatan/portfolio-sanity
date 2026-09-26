@@ -20,6 +20,7 @@ export default function HeroStage() {
     let near: IntersectionObserver | undefined;
     let seen: IntersectionObserver | undefined;
     let timer = 0;
+    let frame = 0;
     let settled = false;
 
     function fail() {
@@ -50,6 +51,26 @@ export default function HeroStage() {
         else video!.pause();
       });
       seen.observe(slot!);
+
+      // Ease into the current fade level, then follow the scroll directly.
+      for (const el of copy) el.style.transition = "filter 800ms cubic-bezier(0.22, 1, 0.36, 1)";
+      recede();
+      setTimeout(() => copy.forEach((el) => (el.style.transition = "")), 800);
+      window.addEventListener("scroll", onScroll, { passive: true });
+    }
+
+    // The hero copy fades out as the stage rises to the centre of the screen.
+    // filter, not opacity: the hero's intro animations already own opacity.
+    const copy = slot.closest(".hero")!.querySelectorAll<HTMLElement>(".hero-title, .hero-sub, .hero-cta, .proof");
+    function recede() {
+      frame = 0;
+      const box = slot!.getBoundingClientRect();
+      const centred = box.top + scrollY + box.height / 2 - innerHeight / 2;
+      const progress = centred > 0 ? Math.min(1, Math.max(0, scrollY / centred)) : 0;
+      for (const el of copy) el.style.filter = `opacity(${1 - progress})`;
+    }
+    function onScroll() {
+      if (!frame) frame = requestAnimationFrame(recede);
     }
 
     function start() {
@@ -80,6 +101,8 @@ export default function HeroStage() {
     window.addEventListener("scroll", arm, { once: true, passive: true });
     return () => {
       window.removeEventListener("scroll", arm);
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
       near?.disconnect();
       seen?.disconnect();
       clearTimeout(timer);
@@ -90,8 +113,7 @@ export default function HeroStage() {
     <div className="hero-stage-slot" ref={slotRef} aria-hidden="true">
       <div className="hero-stage-clip">
         <div className="hero-stage">
-          <div className="hero-stage-chrome"><span className="d"></span><span className="d"></span><span className="d"></span></div>
-          <div className="hero-stage-inner">
+            <div className="hero-stage-inner">
             <video ref={videoRef} className="hero-stage-video" muted loop playsInline preload="none"></video>
           </div>
         </div>
