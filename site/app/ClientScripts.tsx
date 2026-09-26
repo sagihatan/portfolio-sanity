@@ -356,16 +356,23 @@ export default function ClientScripts() {
               const text = node.textContent;
               if (!text.trim()) return;
               const frag = document.createDocumentFragment();
+              let word = null; // keeps a word's chars together so lines only break between words
               for (let i = 0; i < text.length; i++) {
                 const ch = text[i];
                 if (ch === ' ' || ch === '\n') {
+                  word = null;
                   frag.appendChild(document.createTextNode(ch));
                 } else {
+                  if (!word) {
+                    word = document.createElement('span');
+                    word.style.whiteSpace = 'nowrap';
+                    frag.appendChild(word);
+                  }
                   const span = document.createElement('span');
                   span.textContent = ch;
                   span.className = 'char';
                   span.style.setProperty('--char-index', idx++);
-                  frag.appendChild(span);
+                  word.appendChild(span);
                 }
               }
               node.parentNode.replaceChild(frag, node);
