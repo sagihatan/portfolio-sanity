@@ -54,23 +54,35 @@ export default function HeroStage() {
 
       // Ease into the current fade level, then follow the scroll directly.
       for (const el of copy) el.style.transition = "filter 800ms cubic-bezier(0.22, 1, 0.36, 1)";
-      recede();
+      track();
       setTimeout(() => copy.forEach((el) => (el.style.transition = "")), 800);
       window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
     }
 
-    // The hero copy fades out as the stage rises to the centre of the screen.
-    // filter, not opacity: the hero's intro animations already own opacity.
+    const stage = slot.querySelector<HTMLElement>(".hero-stage")!;
     const copy = slot.closest(".hero")!.querySelectorAll<HTMLElement>(".hero-title, .hero-sub, .hero-cta, .proof");
-    function recede() {
+    function track() {
       frame = 0;
-      const box = slot!.getBoundingClientRect();
-      const centred = box.top + scrollY + box.height / 2 - innerHeight / 2;
-      const progress = centred > 0 ? Math.min(1, Math.max(0, scrollY / centred)) : 0;
-      for (const el of copy) el.style.filter = `opacity(${1 - progress})`;
+      const h = stage.offsetHeight;
+      const top = slot!.getBoundingClientRect().bottom - h; // unscaled
+      const offCentre = top + h / 2 - innerHeight / 2;
+
+      // Hero copy: fully visible at the page top, gone once the stage is centred.
+      // filter, not opacity: the hero's intro animations already own opacity.
+      const centredAt = offCentre + scrollY;
+      const fade = centredAt > 0 ? Math.min(1, Math.max(0, scrollY / centredAt)) : 0;
+      for (const el of copy) el.style.filter = `opacity(${1 - fade})`;
+
+      // Stage: widens toward the screen edges (minus the gutter) as it nears the
+      // centre, and settles back to the cards' width as it moves on.
+      const gutter = parseFloat(getComputedStyle(slot!).getPropertyValue("--stage-gutter"));
+      const grow = Math.min((innerWidth - 2 * gutter) / stage.offsetWidth, (innerHeight - 2 * gutter) / h) - 1;
+      const x = 1 - Math.min(1, Math.abs(offCentre) / (innerHeight / 2));
+      stage.style.scale = String(1 + Math.max(0, grow) * x * x * (3 - 2 * x));
     }
     function onScroll() {
-      if (!frame) frame = requestAnimationFrame(recede);
+      if (!frame) frame = requestAnimationFrame(track);
     }
 
     function start() {
@@ -102,6 +114,7 @@ export default function HeroStage() {
     return () => {
       window.removeEventListener("scroll", arm);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(frame);
       near?.disconnect();
       seen?.disconnect();
