@@ -289,11 +289,10 @@ export default async function Home() {
   {/* HERO */}
   <header className="hero wrap">
     <h1 className="hero-title">
-      <span className="mask-wrap"><span className="mask-text">The senior designer</span></span><br />
-      <span className="mask-wrap" style={{paddingTop: "4px"}}><span className="mask-text"><em>your</em> product
-          needs</span></span>
+      <span className="mask-wrap"><span className="mask-text">One designer.</span></span><br />
+      <span className="mask-wrap" style={{paddingTop: "4px"}}><span className="mask-text"><em>Full coverage.</em></span></span>
     </h1>
-    <p className="hero-sub" style={{width: "520px"}}>From idea to product, or as part of your team.<br />I step in where needed.
+    <p className="hero-sub" style={{width: "520px"}}>From early ideas and UX to polished<br />digital products and websites.
     </p>
     <div className="hero-cta">
       <a className="btn btn-lg btn-ghost" href="#work">See my work</a>
@@ -329,10 +328,9 @@ export default async function Home() {
   <section id="services" className="wrap sys-reveal-trigger">
     <div className="section-head">
       <h2 className="section-title" style={{color: "rgb(0,0,0)"}}>
-        <span className="mask-wrap"><span className="mask-text">One designer.</span></span><br />
+        <span className="mask-wrap"><span className="mask-text">From start to scale.</span></span><br />
         <span className="mask-wrap" style={{paddingTop: "4px"}}><span className="mask-text"><em
-              style={{fontFamily: "'Instrument Serif'", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>Full
-              coverage.</em></span></span>
+              style={{fontFamily: "'Instrument Serif'", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>End-to-end.</em></span></span>
       </h2>
     </div>
     <div className="value-grid">
