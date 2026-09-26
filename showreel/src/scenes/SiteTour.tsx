@@ -92,6 +92,8 @@ const buildPlan = (W: number, H: number, vertical: boolean): Plan => {
     phase: (f) => f * ((40 * 4 * Math.PI) / SITE_DURATION), // ambient float completes whole cycles per loop
     // Same on-screen pill size on every frame (divide out each frame's camera zoom)
     labelSize: (k, f) => (vertical ? lerp(OV_LABEL, 56 / fit(k).z, 1 - ov(f)) : 36 / fit(k).z),
+    // Phone cut: while zoomed in, only the focused frame's title shows (neighbours' titles sit right under it)
+    labelAlpha: (k, f) => (vertical ? Math.max(ov(f), inView(k, f)) : 1),
     spin: false,
   };
 };

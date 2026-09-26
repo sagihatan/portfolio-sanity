@@ -205,6 +205,7 @@ export type Plan = {
   focus: (k: number, f: number) => number; // spotlight opacity
   phase: (f: number) => number; // clock for ambient motion (loop-safe on the website)
   labelSize: (k: number, f: number) => number; // world px, per frame
+  labelAlpha?: (k: number, f: number) => number; // title visibility (default 1)
   spin: boolean; // vortex
 };
 
@@ -232,7 +233,7 @@ const useStoryPlan = (loop: boolean): Plan => {
 
 // ─── Selection ring + title ──────────────────────────────────────────
 /** Frame title: plain text above the ring — primary when in focus, quiet grey otherwise. */
-const Pill: React.FC<{ F: Frame; size: number; a: number }> = ({ F, size, a }) => {
+const Pill: React.FC<{ F: Frame; size: number; a: number; alpha: number }> = ({ F, size, a, alpha }) => {
   const fs = size * 0.8;
   const base: React.CSSProperties = {
     position: "absolute",
@@ -246,8 +247,8 @@ const Pill: React.FC<{ F: Frame; size: number; a: number }> = ({ F, size, a }) =
   };
   return (
     <>
-      <div style={{ ...base, fontWeight: 500, color: "#9A9AA2", opacity: 1 - a }}>{F.name}</div>
-      {a > 0 && <div style={{ ...base, fontWeight: 700, color: "#B52752", opacity: a }}>{F.name}</div>}
+      <div style={{ ...base, fontWeight: 500, color: "#9A9AA2", opacity: (1 - a) * alpha }}>{F.name}</div>
+      {a > 0 && <div style={{ ...base, fontWeight: 700, color: "#B52752", opacity: a * alpha }}>{F.name}</div>}
     </>
   );
 };
@@ -303,7 +304,7 @@ export const World: React.FC<{ plan: Plan }> = ({ plan }) => {
               transform: v > 0 ? `translate(${s.x}px, ${s.y}px) rotate(${s.rot}deg) scale(${lerp(1, 0.12, Math.pow(v, 1.2))})` : undefined,
             }}
           >
-            {plan.labelSize(k, f) > 0 && <Pill F={F} size={plan.labelSize(k, f)} a={act[k]} />}
+            {plan.labelSize(k, f) > 0 && <Pill F={F} size={plan.labelSize(k, f)} a={act[k]} alpha={plan.labelAlpha?.(k, f) ?? 1} />}
             <div
               style={{
                 position: "absolute",
