@@ -42,7 +42,7 @@ export default function HeroStage() {
       const size = matchMedia("(max-width: 720px)").matches ? "mobile" : "desktop";
       for (const ext of ["webm", "mp4"]) {
         const source = document.createElement("source");
-        source.src = `/assets/showreel/site-${size}.${ext}`;
+        source.src = `/assets/showreel/site-${size}-v2.${ext}`;
         source.type = `video/${ext}`;
         video!.append(source);
       }
@@ -65,8 +65,8 @@ export default function HeroStage() {
       <div className="hero-stage">
         <div className="hero-stage-inner">
           <picture>
-            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-poster.webp" />
-            <img className="hero-stage-still" src="/assets/showreel/site-desktop-poster.webp" alt="" fetchPriority="low" decoding="async" />
+            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-v2-poster.webp" />
+            <img className="hero-stage-still" src="/assets/showreel/site-desktop-v2-poster.webp" alt="" fetchPriority="low" decoding="async" />
           </picture>
           <video ref={videoRef} className="hero-stage-video" muted loop playsInline preload="none"></video>
         </div>

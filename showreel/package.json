@@ -1,0 +1,22 @@
+{
+  "name": "sagi-showreel",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Showreel out/sagi-showreel.mp4 --codec=h264 --crf=16 --pixel-format=yuv420p",
+    "still": "remotion still Showreel"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.529",
+    "@remotion/google-fonts": "^4.0.529",
+    "@remotion/motion-blur": "^4.0.529",
+    "@remotion/paths": "^4.0.529",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.529"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}
