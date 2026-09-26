@@ -328,10 +328,9 @@ export default async function Home() {
   <section id="services" className="wrap sys-reveal-trigger">
     <div className="section-head">
       <h2 className="section-title" style={{color: "rgb(0,0,0)"}}>
-        <span className="mask-wrap"><span className="mask-text">Whatever the stage.</span></span><br />
+        <span className="mask-wrap"><span className="mask-text">From start to scale.</span></span><br />
         <span className="mask-wrap" style={{paddingTop: "4px"}}><span className="mask-text"><em
-              style={{fontFamily: "'Instrument Serif'", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>I
-              step in.</em></span></span>
+              style={{fontFamily: "'Instrument Serif'", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>End-to-end.</em></span></span>
       </h2>
     </div>
     <div className="value-grid">
