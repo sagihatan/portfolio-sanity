@@ -292,7 +292,7 @@ export default async function Home() {
       <span className="mask-wrap"><span className="mask-text">One designer.</span></span><br />
       <span className="mask-wrap" style={{paddingTop: "4px"}}><span className="mask-text"><em>Full coverage.</em></span></span>
     </h1>
-    <p className="hero-sub" style={{width: "520px"}}>From early ideas and UX to polished digital products and websites.
+    <p className="hero-sub" style={{width: "520px"}}>From early ideas and UX to polished<br />digital products and websites.
     </p>
     <div className="hero-cta">
       <a className="btn btn-lg btn-ghost" href="#work">See my work</a>
