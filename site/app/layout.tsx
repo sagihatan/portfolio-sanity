@@ -1,6 +1,23 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { Bricolage_Grotesque, Caveat, Instrument_Serif } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+
+// Self-hosted fonts: no render-blocking requests to other sites.
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], axes: ["opsz"], variable: "--font-bricolage" });
+const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: "italic", variable: "--font-instrument" });
+// Only the desktop signature uses Caveat, so it isn't preloaded.
+const caveat = Caveat({ subsets: ["latin"], weight: "400", preload: false, variable: "--font-caveat" });
+// Satoshi has no 600; 600 text renders with 700, as it did from Fontshare.
+const satoshi = localFont({
+  src: [
+    { path: "./fonts/Satoshi-400.woff2", weight: "400" },
+    { path: "./fonts/Satoshi-500.woff2", weight: "500" },
+    { path: "./fonts/Satoshi-700.woff2", weight: "700" },
+  ],
+  variable: "--font-satoshi",
+});
 
 export const metadata: Metadata = {
   title: "Sagi Hatan — Senior Product Designer",
@@ -28,25 +45,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${bricolage.variable} ${instrumentSerif.variable} ${caveat.variable} ${satoshi.variable}`}>
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png" />
         <link rel="shortcut icon" href="/assets/favicon.ico" />
         <link rel="manifest" href="/assets/site.webmanifest" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Serif:ital@0;1&family=Caveat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-        <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://cdn.sanity.io" />
         {/* Turbopack/Lightning CSS strips unprefixed backdrop-filter from these rules — injected raw to bypass optimizer */}
         <style dangerouslySetInnerHTML={{ __html: `
-          .nav-inner::before {
-            backdrop-filter: blur(0px) saturate(100%);
-          }
           nav.topnav.compact .nav-inner::before {
             backdrop-filter: blur(24px) saturate(160%);
           }

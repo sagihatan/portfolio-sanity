@@ -4,29 +4,6 @@ import { useEffect } from "react";
 
 export default function ClientScripts() {
   useEffect(() => {
-    // TWEAKS persistent state
-    const TWEAKS = /*EDITMODE-BEGIN*/{
-      "accentHue": "warm",
-      "bg": "#FFFFFF"
-    }/*EDITMODE-END*/;
-
-    const HUE_GRADIENTS = {
-      warm: "linear-gradient(140deg, #DC6034 16.04%, #C32B5A 50.78%, #671186 84.49%)",
-      cool: "linear-gradient(140deg, #1ebfa0 16.04%, #2c6edb 50.78%, #4a2cdb 84.49%)",
-      mono: "linear-gradient(140deg, #444 16.04%, #222 50.78%, #000 84.49%)",
-      sun: "linear-gradient(140deg, #f5a524 16.04%, #e0467e 50.78%, #b02cb8 84.49%)"
-    };
-    const root = document.documentElement;
-
-    function applyTweaks() {
-      root.style.setProperty('--grad', HUE_GRADIENTS[TWEAKS.accentHue] || HUE_GRADIENTS.warm);
-      root.style.setProperty('--bg', TWEAKS.bg);
-      // swatch selection
-      document.querySelectorAll('#hueSwatches .tw-swatch').forEach(s => s.classList.toggle('sel', s.dataset.hue === TWEAKS.accentHue));
-      document.querySelectorAll('#bgSwatches .tw-swatch').forEach(s => s.classList.toggle('sel', s.dataset.bg === TWEAKS.bg));
-    }
-    applyTweaks();
-
     // NAV scroll — gate class toggle by state change to avoid layout churn
     (function () {
       const nav = document.getElementById('topnav');
@@ -154,6 +131,7 @@ export default function ClientScripts() {
         let startX = 0, startY = 0, dx = 0, dy = 0;
         let dragging = false, locked = false;
         let pointerId = null;
+        let baseX = 0; // measured once per gesture, not on every pointermove
 
         function onDown(e) {
           if (animating) return;
@@ -163,6 +141,7 @@ export default function ClientScripts() {
           dragging = true;
           locked = false;
           pointerId = e.pointerId;
+          baseX = translateFor(loveIdx);
           try { track.setPointerCapture(pointerId); } catch (_) { }
           track.classList.add('is-dragging');
           track.style.transition = 'none';
@@ -190,7 +169,7 @@ export default function ClientScripts() {
           }
           if (locked === 'x') {
             if (e.cancelable) e.preventDefault();
-            track.style.transform = `translateX(${translateFor(loveIdx, dx)}px)`;
+            track.style.transform = `translateX(${baseX + dx}px)`;
           }
         }
         function onUp() {
@@ -247,29 +226,20 @@ export default function ClientScripts() {
       });
     })();
 
-    // EDIT MODE + TWEAKS
+    // Below-the-fold videos load and play only while on screen; the phone
+    // logo marquee pauses off screen.
     (function () {
-      const fab = document.getElementById('twFab');
-      const panel = document.getElementById('twPanel');
-      window.addEventListener('message', (e) => {
-        const d = e.data || {};
-        if (d.type === '__activate_edit_mode') fab.classList.add('show');
-        if (d.type === '__deactivate_edit_mode') { fab.classList.remove('show'); panel.classList.remove('show'); }
-      });
-      try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) { }
-      fab.addEventListener('click', () => panel.classList.toggle('show'));
-
-      function bindSwatches(selector, key) {
-        document.querySelectorAll(selector).forEach(s => {
-          s.addEventListener('click', () => {
-            TWEAKS[key] = s.dataset[key === 'accentHue' ? 'hue' : 'bg'];
-            applyTweaks();
-            try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: TWEAKS[key] } }, '*'); } catch (e) { }
-          });
-        });
-      }
-      bindSwatches('#hueSwatches .tw-swatch', 'accentHue');
-      bindSwatches('#bgSwatches .tw-swatch', 'bg');
+      const io = new IntersectionObserver((entries) => {
+        for (const { target, isIntersecting } of entries) {
+          if (target.tagName === 'VIDEO') {
+            if (isIntersecting) target.play().catch(() => { });
+            else target.pause();
+          } else {
+            target.classList.toggle('is-offscreen', !isIntersecting);
+          }
+        }
+      }, { rootMargin: '200px 0px' });
+      document.querySelectorAll('.v-video video, .cta-visual video, .logos-track').forEach(el => io.observe(el));
     })();
 
     // CINEMATIC REVEAL on scroll
