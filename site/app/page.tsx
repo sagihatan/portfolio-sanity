@@ -1,4 +1,5 @@
 import ClientScripts from "./ClientScripts";
+import HeroStage from "./HeroStage";
 import type { CSSProperties } from "react";
 import { client } from "../sanity/lib/client";
 import { urlFor } from "../sanity/lib/image";
@@ -96,7 +97,6 @@ type SanityImage = {
 
 type SiteSettings = {
   showHeroStage?: boolean;
-  heroStageVideoUrl?: string | null;
   trustedLogos?: TrustedLogo[];
 };
 
@@ -249,7 +249,6 @@ export default async function Home() {
     client.fetch(TESTIMONIALS_QUERY, {}, fetchOptions),
     client.fetch<SiteSettings | null>(SITE_SETTINGS_QUERY, {}, fetchOptions),
   ]);
-  const heroStageVideoSrc = siteSettings?.showHeroStage ? siteSettings.heroStageVideoUrl : null;
   const cmsTrustedLogos = siteSettings?.trustedLogos?.filter((logo) => logo.logoUrl) || [];
   const trustedLogos = cmsTrustedLogos.length ? cmsTrustedLogos : defaultTrustedLogos;
 
@@ -315,14 +314,7 @@ export default async function Home() {
     </div>
     ) : null}
 
-    {heroStageVideoSrc ? (
-      <div className="hero-stage" aria-hidden="true">
-        <div className="hero-stage-chrome"><span className="d"></span><span className="d"></span><span className="d"></span></div>
-        <div className="hero-stage-inner">
-          <video className="hero-stage-video" src={heroStageVideoSrc} autoPlay muted loop playsInline preload="metadata"></video>
-        </div>
-      </div>
-    ) : null}
+    {siteSettings?.showHeroStage !== false ? <HeroStage /> : null}
   </header>
 
   {/* VALUE */}
