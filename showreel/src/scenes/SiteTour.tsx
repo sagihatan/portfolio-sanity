@@ -26,27 +26,38 @@ const ZOOM_OUT = [LEAVE[4], LEAVE[4] + 54] as const;
 export const SITE_DURATION = ZOOM_OUT[1] + 60; // hold the overview 1s, then loop (≈12.6s)
 const RING_TIMING = { open: 38, fade: 18 }; // draw quick → slow; fade soft as the camera leaves
 
-// Phone cut: the frames sit on one left edge, 240 apart — Websites | Mobile apps on the first row, then one per row.
+// Phone cut: the frames sit on one left edge — Websites | Mobile apps on the first row, then one per row.
 // Titles are one size on the overview (world px) and grow to a fixed on-screen size as the camera lands on a frame.
 const GAP = 240;
 const OV_LABEL = 72;
-const stackFrames = (): Frame[] => {
+const FOCUS_LABEL = 120; // on-screen title when zoomed in: ~32px on a 390 phone, the largest where "SaaS & dashboards" still fits on one line
+const labelTop = (size: number) => size * 0.8 * 1.2 + size * 0.75 + RING_GAP + RING; // title block height above a frame (see Pill)
+const TITLE = labelTop(FOCUS_LABEL); // focused title block, on-screen px
+
+// Zoom that fits a frame plus its focused title into the phone video
+const phoneZoom = (F: Frame, W: number, H: number) => Math.min((0.8 * W) / F.w, (0.84 * H - TITLE) / F.h);
+// One even row gap, wide enough that every zoomed-in title clears the frame above it
+const stackFrames = (W: number, H: number): Frame[] => {
   const [web, mobile, ...rest] = layoutFrames(true).frames;
+  const gap = Math.max(GAP, ...rest.map((F) => (TITLE + 48) / phoneZoom(F, W, H)));
   const out = [{ ...web, x: 0, y: 0 }, { ...mobile, x: web.w + GAP, y: 0 }];
-  let y = web.h + GAP;
+  let y = Math.max(web.h, mobile.h);
   for (const F of rest) {
+    y += gap;
     out.push({ ...F, x: 0, y });
-    y += F.h + GAP;
+    y += F.h;
   }
   return out;
 };
-const labelTop = (size: number) => size * 0.8 * 1.2 + size * 0.75 + RING_GAP + RING; // title block height above a frame (see Pill)
 
 const buildPlan = (W: number, H: number, vertical: boolean): Plan => {
-  const frames = vertical ? stackFrames() : layoutFrames(false).frames;
+  const frames = vertical ? stackFrames(W, H) : layoutFrames(false).frames;
   const fit = (k: number): Cam => {
     const F = frames[k];
-    return { cx: F.x + F.w / 2, cy: F.y + F.h / 2, z: Math.min((0.8 * W) / F.w, ((vertical ? 0.74 : 0.8) * H) / F.h), px: W / 2, py: H / 2 + (vertical ? 60 : 30) };
+    const c = { cx: F.x + F.w / 2, cy: F.y + F.h / 2, px: W / 2 };
+    return vertical
+      ? { ...c, z: phoneZoom(F, W, H), py: H / 2 + TITLE / 2 } // frame + title centred together
+      : { ...c, z: Math.min((0.8 * W) / F.w, (0.8 * H) / F.h), py: H / 2 + 30 };
   };
   // Overview: fit the whole canvas (incl. labels) into the frame
   const xs = frames.flatMap((F) => [F.x, F.x + F.w]);
@@ -91,7 +102,7 @@ const buildPlan = (W: number, H: number, vertical: boolean): Plan => {
     focus: (k, f) => Math.max(ov(f), 0.22 + 0.78 * inView(k, f)),
     phase: (f) => f * ((40 * 4 * Math.PI) / SITE_DURATION), // ambient float completes whole cycles per loop
     // Same on-screen pill size on every frame (divide out each frame's camera zoom)
-    labelSize: (k, f) => (vertical ? lerp(OV_LABEL, 56 / fit(k).z, 1 - ov(f)) : 36 / fit(k).z),
+    labelSize: (k, f) => (vertical ? lerp(OV_LABEL, FOCUS_LABEL / fit(k).z, 1 - ov(f)) : 36 / fit(k).z),
     // Phone cut: while zoomed in, only the focused frame's title shows (neighbours' titles sit right under it)
     labelAlpha: (k, f) => (vertical ? Math.max(ov(f), inView(k, f)) : 1),
     spin: false,
