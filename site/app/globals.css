@@ -3096,6 +3096,10 @@
 
       .section-title {
         font-size: clamp(34px, 10vw, 44px);
+        /* centred headlines may use half the 32px side padding, so one-line
+           titles like "From start to scale." don't wrap on phones */
+        margin-left: -16px;
+        margin-right: -16px;
       }
 
       .sys-reveal-trigger {
