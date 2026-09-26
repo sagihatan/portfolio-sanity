@@ -1,9 +1,9 @@
 import { AbsoluteFill } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
-import { tw } from "../lib/anim";
+import { lerp, tw } from "../lib/anim";
 import { useLayout } from "../lib/layout";
-import { Cam, Key, Plan, World, layoutFrames } from "./CanvasTour";
-import { selectionAt } from "../components/Selection";
+import { Cam, Frame, Key, Plan, World, layoutFrames } from "./CanvasTour";
+import { RING, RING_GAP, selectionAt } from "../components/Selection";
 import { Grain } from "../components/Grain";
 
 /**
@@ -26,15 +26,31 @@ const ZOOM_OUT = [LEAVE[4], LEAVE[4] + 54] as const;
 export const SITE_DURATION = ZOOM_OUT[1] + 60; // hold the overview 1s, then loop (≈12.6s)
 const RING_TIMING = { open: 38, fade: 18 }; // draw quick → slow; fade soft as the camera leaves
 
+// Phone cut: the frames sit on one left edge, 240 apart — Websites | Mobile apps on the first row, then one per row.
+// Titles are one size on the overview (world px) and grow to a fixed on-screen size as the camera lands on a frame.
+const GAP = 240;
+const OV_LABEL = 72;
+const stackFrames = (): Frame[] => {
+  const [web, mobile, ...rest] = layoutFrames(true).frames;
+  const out = [{ ...web, x: 0, y: 0 }, { ...mobile, x: web.w + GAP, y: 0 }];
+  let y = web.h + GAP;
+  for (const F of rest) {
+    out.push({ ...F, x: 0, y });
+    y += F.h + GAP;
+  }
+  return out;
+};
+const labelTop = (size: number) => size * 0.8 * 1.2 + size * 0.75 + RING_GAP + RING; // title block height above a frame (see Pill)
+
 const buildPlan = (W: number, H: number, vertical: boolean): Plan => {
-  const { frames } = layoutFrames(vertical);
+  const frames = vertical ? stackFrames() : layoutFrames(false).frames;
   const fit = (k: number): Cam => {
     const F = frames[k];
     return { cx: F.x + F.w / 2, cy: F.y + F.h / 2, z: Math.min((0.8 * W) / F.w, ((vertical ? 0.74 : 0.8) * H) / F.h), px: W / 2, py: H / 2 + (vertical ? 60 : 30) };
   };
   // Overview: fit the whole canvas (incl. labels) into the frame
   const xs = frames.flatMap((F) => [F.x, F.x + F.w]);
-  const ys = frames.flatMap((F) => [F.y - 70, F.y + F.h]);
+  const ys = frames.flatMap((F) => [F.y - (vertical ? labelTop(OV_LABEL) : 70), F.y + F.h]);
   const bw = Math.max(...xs) - Math.min(...xs);
   const bh = Math.max(...ys) - Math.min(...ys);
   const overview: Cam = {
@@ -75,7 +91,7 @@ const buildPlan = (W: number, H: number, vertical: boolean): Plan => {
     focus: (k, f) => Math.max(ov(f), 0.22 + 0.78 * inView(k, f)),
     phase: (f) => f * ((40 * 4 * Math.PI) / SITE_DURATION), // ambient float completes whole cycles per loop
     // Same on-screen pill size on every frame (divide out each frame's camera zoom)
-    labelSize: (k) => (vertical ? 56 : 36) / fit(k).z,
+    labelSize: (k, f) => (vertical ? lerp(OV_LABEL, 56 / fit(k).z, 1 - ov(f)) : 36 / fit(k).z),
     spin: false,
   };
 };

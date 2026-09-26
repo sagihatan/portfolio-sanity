@@ -204,7 +204,7 @@ export type Plan = {
   active: (k: number, f: number) => number; // 0..1 — label highlight + selection outline
   focus: (k: number, f: number) => number; // spotlight opacity
   phase: (f: number) => number; // clock for ambient motion (loop-safe on the website)
-  labelSize: (k: number) => number; // world px, per frame
+  labelSize: (k: number, f: number) => number; // world px, per frame
   spin: boolean; // vortex
 };
 
@@ -303,7 +303,7 @@ export const World: React.FC<{ plan: Plan }> = ({ plan }) => {
               transform: v > 0 ? `translate(${s.x}px, ${s.y}px) rotate(${s.rot}deg) scale(${lerp(1, 0.12, Math.pow(v, 1.2))})` : undefined,
             }}
           >
-            {plan.labelSize(k) > 0 && <Pill F={F} size={plan.labelSize(k)} a={act[k]} />}
+            {plan.labelSize(k, f) > 0 && <Pill F={F} size={plan.labelSize(k, f)} a={act[k]} />}
             <div
               style={{
                 position: "absolute",
