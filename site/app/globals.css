@@ -3236,7 +3236,8 @@
       }
 
       .hero-title {
-        font-size: clamp(32px, 9vw, 46px) !important;
+        /* short two-line headline: 48px keeps it ~1.2× the section titles, as on desktop */
+        font-size: 48px !important;
         line-height: 1.08;
         word-break: normal;
         overflow-wrap: normal;
