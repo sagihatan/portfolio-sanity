@@ -35,15 +35,25 @@ export default function HeroStage() {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      const services = document.getElementById("services");
+      const before = services?.getBoundingClientRect().top ?? 0;
+      slot!.classList.add("is-ready");
+      const shift = (services?.getBoundingClientRect().top ?? 0) - before;
       if (slot!.getBoundingClientRect().top < 0) {
-        // Already scrolled past: open instantly and keep the visible content still.
-        const services = document.getElementById("services");
-        const before = services?.getBoundingClientRect().top ?? 0;
-        slot!.classList.add("is-instant", "is-ready", "is-open");
-        window.scrollBy(0, (services?.getBoundingClientRect().top ?? 0) - before);
+        // Already scrolled past: keep the visible content where it is.
+        window.scrollBy(0, shift);
       } else {
-        slot!.classList.add("is-ready");
-        setTimeout(() => slot!.classList.add("is-open"), 800);
+        // Start the content below at its old place and glide it down. It moves
+        // by transform only, so the reveal doesn't register as a layout shift.
+        const below = Array.from(document.querySelectorAll<HTMLElement>("header.hero ~ *"))
+          .filter((el) => getComputedStyle(el).position !== "fixed");
+        for (const el of below) el.style.transform = `translateY(${-shift}px)`;
+        slot!.getBoundingClientRect();
+        for (const el of below) {
+          el.style.transition = "transform 900ms cubic-bezier(0.22, 1, 0.36, 1)";
+          el.style.transform = "";
+        }
+        setTimeout(() => below.forEach((el) => (el.style.transition = "")), 900);
       }
       seen = new IntersectionObserver(([entry]) => {
         if (entry.isIntersecting) video!.play().catch(() => {});
@@ -86,12 +96,10 @@ export default function HeroStage() {
 
   return (
     <div className="hero-stage-slot" ref={slotRef} aria-hidden="true">
-      <div className="hero-stage-clip">
-        <div className="hero-stage">
-          <div className="hero-stage-chrome"><span className="d"></span><span className="d"></span><span className="d"></span></div>
-          <div className="hero-stage-inner">
-            <video ref={videoRef} className="hero-stage-video" muted loop playsInline preload="none"></video>
-          </div>
+      <div className="hero-stage">
+        <div className="hero-stage-chrome"><span className="d"></span><span className="d"></span><span className="d"></span></div>
+        <div className="hero-stage-inner">
+          <video ref={videoRef} className="hero-stage-video" muted loop playsInline preload="none"></video>
         </div>
       </div>
     </div>

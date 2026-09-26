@@ -894,29 +894,11 @@
     /* hero showreel stage — collapsed until the video plays (HeroStage.tsx) */
     .hero-stage-slot {
       width: 100%;
-      display: grid;
-      grid-template-rows: 0fr;
-      transition: grid-template-rows 800ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .hero-stage-slot.is-ready {
-      grid-template-rows: 1fr;
-    }
-
-    .hero-stage-slot.is-instant {
-      transition: none;
-    }
-
-    .hero-stage-clip {
-      min-height: 0;
+    .hero-stage-slot:not(.is-ready) {
+      height: 0;
       overflow: hidden;
-    }
-
-    .hero-stage-slot.is-open .hero-stage-clip {
-      overflow: visible;
-    }
-
-    .hero-stage-slot:not(.is-ready) .hero-stage {
       visibility: hidden;
     }
 
