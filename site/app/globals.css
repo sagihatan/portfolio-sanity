@@ -913,13 +913,39 @@
       scale: var(--stage-scale, 1);
     }
 
+    /* Same filter functions in both states so the fade interpolates; the
+       logo row keeps its grayscale. */
+    .hero :is(.hero-title, .hero-sub, .hero-cta) {
+      filter: opacity(1);
+    }
+
+    .hero .proof {
+      filter: grayscale(1) opacity(1);
+    }
+
     .hero :is(.hero-title, .hero-sub, .hero-cta, .proof) {
       transition: filter 600ms cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .hero.is-stage-focus :is(.hero-title, .hero-sub, .hero-cta, .proof) {
+    .hero.is-stage-focus :is(.hero-title, .hero-sub, .hero-cta) {
       filter: opacity(0);
       pointer-events: none;
+    }
+
+    .hero.is-stage-focus .proof {
+      filter: grayscale(1) opacity(0);
+      pointer-events: none;
+    }
+
+    /* A soft hold: scrolls that come to rest near the stage settle it in the
+       centre, and a fast flick stops there once. Only while the reel is live. */
+    html.has-stage-snap {
+      scroll-snap-type: y proximity;
+    }
+
+    .hero-stage {
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
     }
 
     .hero-stage {

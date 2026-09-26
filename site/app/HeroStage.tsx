@@ -50,6 +50,7 @@ export default function HeroStage() {
       video!.addEventListener("playing", () => stage!.classList.add("is-playing"), { once: true });
       video!.load();
       focus.observe(stage!);
+      document.documentElement.classList.add("has-stage-snap");
     }
 
     window.addEventListener("scroll", arm, { once: true, passive: true });
@@ -57,6 +58,7 @@ export default function HeroStage() {
       window.removeEventListener("scroll", arm);
       window.removeEventListener("resize", measure);
       focus.disconnect();
+      document.documentElement.classList.remove("has-stage-snap");
     };
   }, []);
 
