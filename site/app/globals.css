@@ -3709,16 +3709,17 @@
         z-index: 1;
       }
 
+      /* one line on phones: no forced break; the title may use the card's 16px
+         padding, and steps down a hair only below ~367px wide */
       .cta-title {
-        font-size: 36px;
-        width: 100%;
+        font-size: min(36px, 9.8vw);
         margin-top: max(72px, min(calc(48vw + 52px), 260px));
+        margin-left: -16px;
+        margin-right: -16px;
       }
 
       .cta-title .cta-brk {
-        display: block;
-        width: 100%;
-        height: 0;
+        display: none;
       }
 
       .cta-sub {
