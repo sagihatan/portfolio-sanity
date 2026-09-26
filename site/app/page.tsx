@@ -73,13 +73,13 @@ function renderProjectArt(artVariant: string) {
 }
 
 const avatarMap: Record<string, string> = {
-  'Daphna Langer': '/assets/daphna.webp',
-  'Sapir Aran': '/assets/sapir.jpeg',
-  'Lior Avisar': '/assets/lior.jpeg',
-  'Raz Ronen': '/assets/raz.jpeg',
-  'Itay N.': '/assets/itay.jpeg',
-  'Tal Gershenman': '/assets/tal.jpeg',
-  'Omri Yeheskel': '/assets/omri_y.jpeg',
+  'Daphna Langer': '/assets/avatars/daphna.webp',
+  'Sapir Aran': '/assets/avatars/sapir.webp',
+  'Lior Avisar': '/assets/avatars/lior.webp',
+  'Raz Ronen': '/assets/avatars/raz.webp',
+  'Itay N.': '/assets/avatars/itay.webp',
+  'Tal Gershenman': '/assets/avatars/tal.webp',
+  'Omri Yeheskel': '/assets/avatars/omri_y.webp',
 };
 
 const localProjectIconMap: Record<string, string> = {
@@ -175,11 +175,11 @@ const defaultTrustedLogos: TrustedLogo[] = [
   },
 ];
 
-function getProjectImageUrl(image?: SanityImage) {
+function getProjectImageUrl(image: SanityImage | undefined, width: number) {
   if (!image?.asset?._ref) return null;
 
   return urlFor(image)
-    .width(2400)
+    .width(width)
     .fit('max')
     .auto('format')
     .url();
@@ -189,22 +189,29 @@ function getProjectIconUrl(icon?: SanityImage) {
   if (!icon?.asset?._ref) return null;
 
   return urlFor(icon)
-    .width(192)
-    .height(192)
+    .width(144)
+    .height(144)
     .fit('crop')
     .quality(90)
     .auto('format')
     .url();
 }
 
-function getProjectImageStyle(project: Project, imageUrl: string): CSSProperties {
+// Tiles are ~780px wide on desktop and full width on phones; the CSS picks one.
+function getProjectImageStyle(project: Project): CSSProperties {
   return {
-    backgroundImage: `url(${imageUrl})`,
+    '--project-image-lg': `url(${getProjectImageUrl(project.image, 1600)})`,
+    '--project-image-sm': `url(${getProjectImageUrl(project.image, 1200)})`,
     '--project-image-fit': project.imageFit || 'cover',
     '--project-image-position': project.imagePosition || 'center',
     '--project-image-bg': project.imageBackgroundColor || 'transparent',
     '--project-image-padding': `${project.imagePadding || 0}px`,
   } as CSSProperties;
+}
+
+function getAvatarUrl(t: { name: string; avatar?: SanityImage }) {
+  if (t.avatar?.asset?._ref) return urlFor(t.avatar).width(120).height(120).fit('crop').auto('format').url();
+  return avatarMap[t.name] ?? null;
 }
 
 function getLocalProjectIconUrl(projectName: string) {
@@ -237,7 +244,7 @@ function renderTrustedLogo(logo: TrustedLogo, index: number, isDuplicate = false
       style={getTrustedLogoStyle(logo)}
       aria-hidden={isDuplicate ? true : undefined}
     >
-      <img src={logo.logoUrl} alt={isDuplicate ? '' : logo.altText || name} loading="lazy" />
+      <img src={logo.logoUrl} alt={isDuplicate ? '' : logo.altText || name} />
     </span>
   );
 }
@@ -260,7 +267,7 @@ export default async function Home() {
   <nav className="topnav" id="topnav">
     <div className="nav-inner">
       <a href="#" className="brand" aria-label="Sagi Hatan">
-        <img src="/assets/logo.png" alt="Sagi Hatan" width="49" height="56"
+        <img src="/assets/logo.png" srcSet="/assets/logo@3x.webp 3x" alt="Sagi Hatan" width="49" height="56"
           style={{display: "block", width: "auto", height: "40px"}} />
       </a>
       <div className="nav-grow"></div>
@@ -322,12 +329,12 @@ export default async function Home() {
       <h2 className="section-title" style={{color: "rgb(0,0,0)"}}>
         <span className="mask-wrap"><span className="mask-text">From start to scale.</span></span><br />
         <span className="mask-wrap" style={{paddingTop: "4px"}}><span className="mask-text"><em
-              style={{fontFamily: "'Instrument Serif'", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>End-to-end.</em></span></span>
+              style={{fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "400", letterSpacing: "-0.01em", color: "var(--ink)"}}>End-to-end.</em></span></span>
       </h2>
     </div>
     <div className="value-grid">
       <article className="v-card fade-el" style={{"--stg": "2"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card1_v3.mp4" autoPlay muted playsInline loop preload="auto"
+        <div className="v-video"><video src="/assets/card1_v3.mp4" muted playsInline loop preload="none"
             poster="/assets/card1_poster.webp"></video></div>
         <div className="v-body">
           <div className="v-tag">For founders</div>
@@ -337,7 +344,7 @@ export default async function Home() {
         <span className="corner-glow"></span>
       </article>
       <article className="v-card fade-el" style={{"--stg": "3"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card2_v3.mp4" autoPlay muted playsInline loop preload="auto"
+        <div className="v-video"><video src="/assets/card2_v3.mp4" muted playsInline loop preload="none"
             poster="/assets/card2_poster.webp"></video></div>
         <div className="v-body">
           <div className="v-tag">For existing products</div>
@@ -347,7 +354,7 @@ export default async function Home() {
         <span className="corner-glow"></span>
       </article>
       <article className="v-card fade-el" style={{"--stg": "4"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card3_v3.mp4" autoPlay muted playsInline loop preload="auto"
+        <div className="v-video"><video src="/assets/card3_v3.mp4" muted playsInline loop preload="none"
             poster="/assets/card3_poster.webp"></video></div>
         <div className="v-body">
           <div className="v-tag">For a boost</div>
@@ -392,7 +399,7 @@ export default async function Home() {
     </div>
     <div className="bento">
       {(projects as Project[]).map((project, i) => {
-        const projectImageUrl = getProjectImageUrl(project.image);
+        const projectImageUrl = getProjectImageUrl(project.image, 1600);
         const projectIconUrl = getLocalProjectIconUrl(project.name) ?? getProjectIconUrl(project.iconAsset);
 
         return (
@@ -403,7 +410,7 @@ export default async function Home() {
           >
             <div
               className={projectImageUrl ? 'art cms-art' : (artClassMap[project.artVariant] ?? 'art')}
-              style={projectImageUrl ? getProjectImageStyle(project, projectImageUrl) : undefined}
+              style={projectImageUrl ? getProjectImageStyle(project) : undefined}
             >
               {!projectImageUrl && renderProjectArt(project.artVariant)}
             </div>
@@ -429,8 +436,8 @@ export default async function Home() {
                   </div>
                 </div>
                 <div className="project-tags" aria-label="Project tags">
-                  {project.tags?.map((tag: string) => (
-                    <span key={tag} className="project-tag">{tag}</span>
+                  {project.tags?.map((tag: string, i: number) => (
+                    <span key={`${tag}-${i}`} className="project-tag">{tag}</span>
                   ))}
                 </div>
               </div>
@@ -456,7 +463,7 @@ export default async function Home() {
           <article key={t._id} className="love-card">
             <img className="love-star" src="/assets/star.svg" alt="" aria-hidden="true" />
             <div className="love-who">
-              <div className="av"><img src={avatarMap[t.name] ?? '/assets/daphna.webp'} alt={t.name} width="40" height="40" loading="lazy" decoding="async" /></div>
+              <div className="av">{getAvatarUrl(t) && <img src={getAvatarUrl(t)!} alt={t.name} width="40" height="40" loading="lazy" decoding="async" />}</div>
               <div>
                 <div className="name">{t.name}</div>
                 <div className="role">{t.role}</div>
@@ -484,7 +491,7 @@ export default async function Home() {
   <section id="cta" className="wrap sys-reveal-trigger">
     <div className="cta-box">
       <div className="cta-visual">
-        <video autoPlay muted playsInline loop preload="auto" poster="/assets/cta_poster.webp"
+        <video muted playsInline loop preload="none" poster="/assets/cta_poster.webp"
           style={{width: "100%", height: "100%", objectFit: "contain", borderRadius: "16px"}}>
           <source src="/assets/cta_v3.webm" type="video/webm" />
           <source src="/assets/cta_v3.mp4" type="video/mp4" />
@@ -497,31 +504,6 @@ export default async function Home() {
           className="btn-label">Book a call</span></a>
     </div>
   </section>
-
-
-  {/* TWEAKS */}
-  <button className="tw-fab" id="twFab">⚙ Tweaks</button>
-  <div className="tw-panel" id="twPanel">
-    <h6>Tweaks</h6>
-    <div className="tw-row">
-      <span>Accent hue</span>
-      <div className="tw-swatches" id="hueSwatches">
-        <div className="tw-swatch sel" data-hue="warm" style={{background: "linear-gradient(140deg,#DC6034,#671186)"}}></div>
-        <div className="tw-swatch" data-hue="cool" style={{background: "linear-gradient(140deg,#1ebfa0,#2c6edb)"}}></div>
-        <div className="tw-swatch" data-hue="mono" style={{background: "linear-gradient(140deg,#444,#111)"}}></div>
-        <div className="tw-swatch" data-hue="sun" style={{background: "linear-gradient(140deg,#f5a524,#e0467e)"}}></div>
-      </div>
-    </div>
-    <div className="tw-row">
-      <span>Background</span>
-      <div className="tw-swatches" id="bgSwatches">
-        <div className="tw-swatch sel" data-bg="#FAF8F8" style={{background: "#FAF8F8", boxShadow: "0 0 0 1px #ddd"}}></div>
-        <div className="tw-swatch" data-bg="#F5F1EE" style={{background: "#F5F1EE", boxShadow: "0 0 0 1px #ddd"}}></div>
-        <div className="tw-swatch" data-bg="#0F0D14" style={{background: "#0F0D14"}}></div>
-      </div>
-    </div>
-  </div>
-
 
       <ClientScripts />
     </>
