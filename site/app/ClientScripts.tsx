@@ -239,7 +239,7 @@ export default function ClientScripts() {
           }
         }
       }, { rootMargin: '200px 0px' });
-      document.querySelectorAll('.v-video video, .cta-visual video, .logos-track').forEach(el => io.observe(el));
+      document.querySelectorAll('.v-video:not(.service-motion) video, .cta-visual video, .logos-track').forEach(el => io.observe(el));
     })();
 
     // CINEMATIC REVEAL on scroll

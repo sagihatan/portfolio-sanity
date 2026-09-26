@@ -1,5 +1,6 @@
 import ClientScripts from "./ClientScripts";
 import HeroStage from "./HeroStage";
+import ServiceVideo from "./ServiceVideo";
 import type { CSSProperties } from "react";
 import { client } from "../sanity/lib/client";
 import { urlFor } from "../sanity/lib/image";
@@ -334,8 +335,7 @@ export default async function Home() {
     </div>
     <div className="value-grid">
       <article className="v-card fade-el" style={{"--stg": "2"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card1_v3.mp4" muted playsInline loop preload="none"
-            poster="/assets/card1_poster.webp"></video></div>
+        <ServiceVideo asset="build-from-scratch-v1" title="Build from scratch" />
         <div className="v-body">
           <div className="v-tag">For founders</div>
           <h3 className="v-title">Build from scratch</h3>
@@ -344,8 +344,7 @@ export default async function Home() {
         <span className="corner-glow"></span>
       </article>
       <article className="v-card fade-el" style={{"--stg": "3"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card2_v3.mp4" muted playsInline loop preload="none"
-            poster="/assets/card2_poster.webp"></video></div>
+        <ServiceVideo asset="make-it-better-v1" title="Make it better" />
         <div className="v-body">
           <div className="v-tag">For existing products</div>
           <h3 className="v-title">Make it better</h3>
@@ -354,8 +353,7 @@ export default async function Home() {
         <span className="corner-glow"></span>
       </article>
       <article className="v-card fade-el" style={{"--stg": "4"} as React.CSSProperties}>
-        <div className="v-video"><video src="/assets/card3_v3.mp4" muted playsInline loop preload="none"
-            poster="/assets/card3_poster.webp"></video></div>
+        <ServiceVideo asset="join-your-team-v1" title="Join your team" />
         <div className="v-body">
           <div className="v-tag">For a boost</div>
           <h3 className="v-title">Join your team</h3>
