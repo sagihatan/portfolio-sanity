@@ -2,7 +2,23 @@
 
 **Read this before changing any showreel video.** It records what's live, where the files are, and how to re-make them. It's for Sagi, Claude and Codex alike. When you publish a new version, update this file in the same PR.
 
-Last updated: 2026-09-28 (Claude), version **v14**.
+Last updated: 2026-09-28 (Codex), version **v15**, approved Aurora concept 1.
+
+## Current delivery — v15
+
+This section supersedes the v14 implementation and render instructions below, which remain as historical reference. Deployment status is recorded in the PR and shared project memory.
+
+- Desktop: `site-desktop-v15.mp4`, 1920×1080, 60fps, 16.6s, 2,052,772 bytes.
+- Phone: `site-mobile-v15.mp4`, 1080×1620, 60fps, 18.6s, 2,168,354 bytes.
+- Matching first-frame posters: `site-{desktop,mobile}-v15-poster.jpg`.
+- HeroStage keeps its existing 720px breakpoint, first-scroll loading, focus playback, still fallback and reduced-motion/Save-Data handling. It loads one H.264 MP4; no stale WebM fallback.
+- New choreography: all five services, retained component micro-animation, brand tile morphing into the Website card for the loop. Desktop titles: Bricolage Grotesque 700, 48px in the 1920px canvas, aligned with each container with more space above it. Phone compositions and centered titles match approved round 05. Six motion-blur samples retained.
+- Approved sources and independent masters: `/Users/mac/Documents/Projects/Sagi Motion Previews/aurora-experiment-01/`. Reproduce desktop with `BrandDesktop06`, phone with `BrandMobile05` from its `source/` project. Source snapshot: `previews/round-06/source-snapshot.tar.gz`. Final web package: `web-ready-01/` (manifest, QA, masters and integration notes).
+- Rendering: H.264 CRF 12 master; delivery transcode libx264 preset slow CRF 20, yuv420p, High level 4.2, GOP 120, faststart, no audio. Final files decode through three loops, and match the master with SSIM 0.99837 desktop / 0.998116 phone.
+- Claude’s animation source and existing v14 assets are preserved. The legacy compositions below do not reproduce v15.
+
+## Historical v14 handoff
+
 
 ## What's live on sagi.design
 
