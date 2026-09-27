@@ -1,6 +1,6 @@
 import { AbsoluteFill, Easing, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
-import { IN_OUT, clamp01, lerp, tw } from "../lib/anim";
+import { IN_OUT, clamp01, tw } from "../lib/anim";
 import { font } from "../lib/brand";
 import { useLayout } from "../lib/layout";
 import { Cam, Frame, Key, Name, Plan, World, camera, layoutFrames } from "./CanvasTour";
@@ -62,9 +62,25 @@ const stackFrames = (H: number): Frame[] => {
   return out;
 };
 
+// Desktop cut: two rows — Websites | Mobile apps | SaaS, then Design systems | Branding — with enough air that the
+// 32px title of a focused screen never sits under a neighbouring row (film/story keep layoutFrames' spacing)
+const GRID = { x: 240, y: 320 };
+const gridFrames = (): Frame[] => {
+  const [web, mobile, saas, system, brand] = layoutFrames(false).frames;
+  const mx = web.w + GRID.x;
+  const y2 = Math.max(web.h, mobile.h, saas.h) + GRID.y;
+  return [
+    { ...web, x: 0, y: 0 },
+    { ...mobile, x: mx, y: 0 },
+    { ...saas, x: mx + mobile.w + GRID.x, y: 0 },
+    { ...system, x: 0, y: y2 },
+    { ...brand, x: system.w + GRID.x, y: y2 },
+  ];
+};
+
 const buildPlan = (W: number, H: number, vertical: boolean) => {
   const { LAND, LEAVE, OPEN, RESET, ZOOM_OUT, DURATION } = timing(vertical);
-  const frames = vertical ? stackFrames(H) : layoutFrames(false).frames;
+  const frames = vertical ? stackFrames(H) : gridFrames();
   const fit = (k: number): Cam => {
     const F = frames[k];
     const c = { cx: F.x + F.w / 2, cy: F.y + F.h / 2, px: W / 2 };
@@ -118,32 +134,26 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     return inF * outF;
   };
 
-  // Desktop: the names and the spotlight follow the camera zoom, not the clock, so nothing can jump.
+  // Desktop: the labels and the spotlight follow the camera zoom, not the clock, so nothing can jump.
   // zoomIn: 0 on the overview → 1 at the given zoom (log scale, eased), read from the camera itself.
   const zoomIn = (z: number, to: number) => smooth(clamp01(Math.log(z / overview.z) / Math.log(to / overview.z)));
   const zMin = Math.min(...frames.map((_, k) => fit(k).z));
   // Overview-ness during the dive and the zoom-out (the only moves to and from the overview); 0 in between
   const ovZ = (f: number) => (f < LAND[0] || f > ZOOM_OUT[0] ? 1 - zoomIn(camera(keys, f).z, zMin) : 0);
-  // The screen the camera is on: the dive target from the start, the last screen through the zoom-out.
-  // Glides hand over one after the other (out over the first half, in over the second).
-  const subject = (k: number, f: number) =>
-    (k === 0 ? 1 : tw(f, LAND[k] - PAN / 2, LAND[k], 0, 1, IN_OUT)) * (k < 4 ? 1 - tw(f, LEAVE[k], LEAVE[k] + PAN / 2, 0, 1, IN_OUT) : 1);
   // The same screen for the spotlight: it never dims while the camera moves toward or away from it
   const lit = (k: number, f: number) =>
     (k === 0 ? 1 : tw(f, LAND[k] - PAN, LAND[k])) * (k < 4 ? 1 - tw(f, LEAVE[k], LEAVE[k] + PAN) : 1);
-  // Name: a quiet grey label on the overview that grows into the focused title as the camera zooms in (and back)
+  // Desktop title: arrives with the focus ring (fade + a small rise) and leaves with it — the same on every screen,
+  // so glides hand over one after the other. While zooming, only the grey labels show, fading with the zoom.
   const TITLE_PX = DESK_LABEL * 0.8; // 32px on a 1440 screen
-  const name = (k: number, f: number, z: number): Name => {
-    const on = subject(k, f);
-    // Grows over the second half of the zoom: early in the dive the screen is still near the top edge, so the title
-    // resolves as the screen arrives, and always fits in the frame
-    const p = on > 0 ? smooth(clamp01((zoomIn(z, fit(k).z) - 0.5) / 0.5)) : 0;
+  const deskTitle = (k: number, f: number): Name => {
+    const inT = tw(f, OPEN[k], OPEN[k] + 18, 0, 1, IN_OUT);
     return {
-      px: lerp(LABEL.desk, TITLE_PX, p),
-      weight: lerp(500, 700, p),
-      p,
-      gap: lerp(LABEL.desk * 0.5, (RING_GAP + RING) * fit(k).z + DESK_LABEL * 0.75, p), // at focus it clears the ring
-      alpha: Math.max(ovZ(f), on),
+      px: TITLE_PX,
+      title: true,
+      gap: (RING_GAP + RING) * fit(k).z + DESK_LABEL * 0.75, // clears the ring
+      alpha: inT * (1 - tw(f, LEAVE[k] - 6, LEAVE[k] + 6, 0, 1, IN_OUT)),
+      rise: (1 - inT) * ((8 * 1920) / 1248), // 8px on screen
     };
   };
 
@@ -169,10 +179,11 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     active: (k, f) => (f >= OPEN[k] && f < LEAVE[k] + 6 ? tw(f, OPEN[k], OPEN[k] + 10) * (1 - tw(f, LEAVE[k] - 6, LEAVE[k] + 6)) : 0),
     focus: (k, f) => (vertical ? Math.max(ov(f), 0.22 + 0.78 * inView(k, f)) : Math.max(ovZ(f), 0.22 + 0.78 * lit(k, f))),
     phase: (f) => f * ((40 * 4 * Math.PI) / DURATION), // ambient float completes whole cycles per loop
-    // Phone: plain labels (one on-screen size) only on the overview; zoomed in, the pinned title takes over.
+    // Labels (one on-screen size) only on the overview, fading with the zoom. Zoomed in: the desktop title
+    // arrives with the ring; the phone's pinned title takes over.
     labelSize: () => label,
-    labelAlpha: (_, f) => ov(f),
-    name: vertical ? undefined : name,
+    labelAlpha: (_, f) => (vertical ? ov(f) : ovZ(f)),
+    title: vertical ? undefined : deskTitle,
     spin: false,
   };
   // Pinned title's left edge: the screen's left edge where the camera lands (the margin for wide screens)

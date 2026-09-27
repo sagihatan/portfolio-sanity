@@ -1,4 +1,4 @@
-import { AbsoluteFill, interpolateColors, useCurrentFrame } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { EXPO, IN, IN_OUT, clamp01, lerp, rand, tw } from "../lib/anim";
 import { c, font, grad } from "../lib/brand";
@@ -206,7 +206,7 @@ export type Plan = {
   phase: (f: number) => number; // clock for ambient motion (loop-safe on the website)
   labelSize: (k: number, f: number) => number; // plain frame label, video px (same on-screen size at any zoom); 0 = none
   labelAlpha?: (k: number, f: number) => number; // plain label visibility (default 1)
-  name?: (k: number, f: number, z: number) => Name; // a frame name that morphs with the camera (overrides the plain label)
+  title?: (k: number, f: number) => Name; // focused title above the screen (shown on top of the labels)
   spin: boolean; // vortex
 };
 
@@ -233,29 +233,27 @@ const useStoryPlan = (loop: boolean): Plan => {
 };
 
 // ─── Selection ring + title ──────────────────────────────────────────
-/** A frame name's look at one moment, in video px (on-screen size, whatever the zoom). p: 0 = quiet grey label, 1 = focused title. */
-export type Name = { px: number; weight: number; p: number; gap: number; alpha: number };
-export const quietName = (px: number, alpha: number): Name => ({ px, weight: 500, p: 0, gap: px * 0.5, alpha });
+/** A frame name, in video px (its on-screen size, whatever the zoom). title: the pink focused title; else a grey label. */
+export type Name = { px: number; title: boolean; gap: number; alpha: number; rise?: number };
+const label = (px: number, alpha: number): Name => ({ px, title: false, gap: px * 0.5, alpha });
 
-/** Frame name above the screen. One layer: size, weight, colour and spacing all come from one continuous value,
- *  so it can only morph, never swap. */
+/** Frame name above the screen: a quiet grey label, or the focused title in the brand colour. */
 const Pill: React.FC<{ F: Frame; n: Name; z: number }> = ({ F, n, z }) => {
   if (n.alpha <= 0) return null;
-  const fs = n.px / z; // video px → world px, so the size follows the plan, not the camera
+  const fs = n.px / z; // video px → world px, so the on-screen size doesn't depend on the camera
   return (
     <div
       style={{
         position: "absolute",
         left: F.x + 4,
-        top: F.y - n.gap / z - fs * 1.2,
-        fontFamily: font.sansVF,
+        top: F.y - (n.gap - (n.rise ?? 0)) / z - fs * 1.2,
+        fontFamily: font.sans,
         fontSize: fs,
-        fontWeight: n.weight,
-        fontOpticalSizing: "none", // keep the glyph shapes constant while the canvas scales
+        fontWeight: n.title ? 700 : 500,
         lineHeight: 1.2,
-        letterSpacing: `${lerp(-0.01, -0.02, n.p)}em`, // tighter as it grows, like the site's card titles (.v-title)
+        letterSpacing: n.title ? "-0.02em" : "-0.01em", // the title like the site's card titles (.v-title)
         whiteSpace: "nowrap",
-        color: interpolateColors(n.p, [0, 1], ["#9A9AA2", "#B52752"]),
+        color: n.title ? "#B52752" : "#9A9AA2",
         opacity: n.alpha,
       }}
     >
@@ -315,7 +313,8 @@ export const World: React.FC<{ plan: Plan }> = ({ plan }) => {
               transform: v > 0 ? `translate(${s.x}px, ${s.y}px) rotate(${s.rot}deg) scale(${lerp(1, 0.12, Math.pow(v, 1.2))})` : undefined,
             }}
           >
-            {plan.name ? <Pill F={F} n={plan.name(k, f, cam.z)} z={cam.z} /> : plan.labelSize(k, f) > 0 && <Pill F={F} n={quietName(plan.labelSize(k, f), plan.labelAlpha?.(k, f) ?? 1)} z={cam.z} />}
+            {plan.labelSize(k, f) > 0 && <Pill F={F} n={label(plan.labelSize(k, f), plan.labelAlpha?.(k, f) ?? 1)} z={cam.z} />}
+            {plan.title && <Pill F={F} n={plan.title(k, f)} z={cam.z} />}
             <div
               style={{
                 position: "absolute",

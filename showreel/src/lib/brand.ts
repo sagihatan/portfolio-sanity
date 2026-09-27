@@ -1,18 +1,9 @@
-import { getInfo as bricolageInfo, loadFont as loadBricolage } from "@remotion/google-fonts/BricolageGrotesque";
+import { loadFont as loadBricolage } from "@remotion/google-fonts/BricolageGrotesque";
 import { loadFont as loadSerif } from "@remotion/google-fonts/InstrumentSerif";
 import { continueRender, delayRender, staticFile } from "remotion";
 
 const bricolage = loadBricolage("normal", { weights: ["400", "500", "600", "700", "800"], subsets: ["latin"] });
 const serif = loadSerif("italic", { weights: ["400"], subsets: ["latin"] });
-// Bricolage is a variable font (Google serves one file for every weight). Registering that file with its
-// full weight range lets titles animate their weight smoothly instead of snapping between static weights.
-if (typeof document !== "undefined") {
-  const handle = delayRender("Loading Bricolage VF");
-  new FontFace("Bricolage VF", `url(${bricolageInfo().fonts.normal["700"].latin}) format("woff2")`, { weight: "200 800" })
-    .load()
-    .then((ff) => document.fonts.add(ff))
-    .then(() => continueRender(handle));
-}
 // Satoshi (site body font) isn't on Google Fonts — self-hosted from Fontshare.
 if (typeof document !== "undefined") {
   const handle = delayRender("Loading Satoshi");
@@ -27,7 +18,6 @@ if (typeof document !== "undefined") {
 
 export const font = {
   sans: bricolage.fontFamily,
-  sansVF: "Bricolage VF", // same font, any weight 200–800
   serif: serif.fontFamily,
   body: "Satoshi",
 };
