@@ -1,4 +1,4 @@
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolateColors, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { EXPO, IN, IN_OUT, clamp01, lerp, rand, tw } from "../lib/anim";
 import { c, font, grad } from "../lib/brand";
@@ -204,9 +204,9 @@ export type Plan = {
   active: (k: number, f: number) => number; // 0..1 — label highlight + selection outline
   focus: (k: number, f: number) => number; // spotlight opacity
   phase: (f: number) => number; // clock for ambient motion (loop-safe on the website)
-  labelSize: (k: number, f: number) => number; // frame label, video px (same on-screen size at any zoom); 0 = none
-  titleSize?: (k: number) => number; // focused title, world px (omit for no title)
-  labelAlpha?: (k: number, f: number) => number; // title visibility (default 1)
+  labelSize: (k: number, f: number) => number; // plain frame label, video px (same on-screen size at any zoom); 0 = none
+  labelAlpha?: (k: number, f: number) => number; // plain label visibility (default 1)
+  name?: (k: number, f: number, z: number) => Name; // a frame name that morphs with the camera (overrides the plain label)
   spin: boolean; // vortex
 };
 
@@ -233,36 +233,34 @@ const useStoryPlan = (loop: boolean): Plan => {
 };
 
 // ─── Selection ring + title ──────────────────────────────────────────
-/** Frame names, like Figma: a small grey label that keeps the same on-screen size at any zoom, and — on the
- *  screen in focus — a big primary title above the ring. They swap one after the other (never both at once). */
-const Pill: React.FC<{ F: Frame; label: number; title?: number; z: number; a: number; alpha: number }> = ({ F, label, title, z, a, alpha }) => {
-  const text: React.CSSProperties = { position: "absolute", left: F.x + 4, fontFamily: font.sans, lineHeight: 1.2, whiteSpace: "nowrap" };
-  const lf = label / z; // video px → world px, so the label ignores the camera zoom
-  const tf = (title ?? 0) * 0.8;
-  const swap = title ? clamp01(a * 2) : 0; // label out over the first half of the highlight…
+/** A frame name's look at one moment, in video px (on-screen size, whatever the zoom). p: 0 = quiet grey label, 1 = focused title. */
+export type Name = { px: number; weight: number; p: number; gap: number; alpha: number };
+export const quietName = (px: number, alpha: number): Name => ({ px, weight: 500, p: 0, gap: px * 0.5, alpha });
+
+/** Frame name above the screen. One layer: size, weight, colour and spacing all come from one continuous value,
+ *  so it can only morph, never swap. */
+const Pill: React.FC<{ F: Frame; n: Name; z: number }> = ({ F, n, z }) => {
+  if (n.alpha <= 0) return null;
+  const fs = n.px / z; // video px → world px, so the size follows the plan, not the camera
   return (
-    <>
-      {swap < 1 && (
-        <div style={{ ...text, top: F.y - lf * 1.7, fontSize: lf, fontWeight: 500, letterSpacing: "-0.01em", color: "#9A9AA2", opacity: alpha * (1 - swap) }}>
-          {F.name}
-        </div>
-      )}
-      {title && a > 0.5 && (
-        <div
-          style={{
-            ...text,
-            top: F.y - RING_GAP - RING - tf * 1.2 - title * 0.75, // clear air between the title and the ring
-            fontSize: tf,
-            fontWeight: 700,
-            letterSpacing: "-0.02em", // like the site's card titles (.v-title)
-            color: "#B52752",
-            opacity: alpha * clamp01(a * 2 - 1), // …title in over the second
-          }}
-        >
-          {F.name}
-        </div>
-      )}
-    </>
+    <div
+      style={{
+        position: "absolute",
+        left: F.x + 4,
+        top: F.y - n.gap / z - fs * 1.2,
+        fontFamily: font.sansVF,
+        fontSize: fs,
+        fontWeight: n.weight,
+        fontOpticalSizing: "none", // keep the glyph shapes constant while the canvas scales
+        lineHeight: 1.2,
+        letterSpacing: `${lerp(-0.01, -0.02, n.p)}em`, // tighter as it grows, like the site's card titles (.v-title)
+        whiteSpace: "nowrap",
+        color: interpolateColors(n.p, [0, 1], ["#9A9AA2", "#B52752"]),
+        opacity: n.alpha,
+      }}
+    >
+      {F.name}
+    </div>
   );
 };
 
@@ -317,7 +315,7 @@ export const World: React.FC<{ plan: Plan }> = ({ plan }) => {
               transform: v > 0 ? `translate(${s.x}px, ${s.y}px) rotate(${s.rot}deg) scale(${lerp(1, 0.12, Math.pow(v, 1.2))})` : undefined,
             }}
           >
-            {plan.labelSize(k, f) > 0 && <Pill F={F} label={plan.labelSize(k, f)} title={plan.titleSize?.(k)} z={cam.z} a={act[k]} alpha={plan.labelAlpha?.(k, f) ?? 1} />}
+            {plan.name ? <Pill F={F} n={plan.name(k, f, cam.z)} z={cam.z} /> : plan.labelSize(k, f) > 0 && <Pill F={F} n={quietName(plan.labelSize(k, f), plan.labelAlpha?.(k, f) ?? 1)} z={cam.z} />}
             <div
               style={{
                 position: "absolute",
