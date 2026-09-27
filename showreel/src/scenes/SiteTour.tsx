@@ -40,6 +40,9 @@ const OV_LABEL = 72; // overview titles, world px
 const FOCUS_LABEL = 90; // pinned title: 72px in the video = 24px on a 390 phone
 const labelTop = (size: number) => size * 0.8 * 1.2 + size * 0.75 + RING_GAP + RING; // title block height above a frame (see Pill)
 const TITLE = labelTop(FOCUS_LABEL); // pinned title block, on-screen px
+// Desktop canvas titles: 32px on a 1440 screen (the stage is 1248 of the video's 1920 px wide)
+const DESK_LABEL = (32 * 1920) / 1248 / 0.8; // Pill draws text at 0.8 × size
+const DESK_TITLE = labelTop(DESK_LABEL); // title block above the focused screen, video px
 
 // Every screen shows at the same height, the title block above it
 const phoneZoom = (F: Frame, H: number) => (0.84 * H - TITLE) / F.h;
@@ -65,7 +68,7 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     const c = { cx: F.x + F.w / 2, cy: F.y + F.h / 2, px: W / 2 };
     return vertical
       ? { ...c, z: phoneZoom(F, H), py: H / 2 + TITLE / 2 } // frame + title centred together
-      : { ...c, z: Math.min((0.8 * W) / F.w, (0.8 * H) / F.h), py: H / 2 + 30 };
+      : { ...c, z: Math.min((0.8 * W) / F.w, (0.88 * H - DESK_TITLE) / F.h), py: H / 2 + (DESK_TITLE - RING_GAP - RING) / 2 }; // title + screen + ring fit and centre together
   };
   // Where the camera lands on frame k and where it leaves: a slight push-in, and on the phone a glide
   // from the left edge to the right edge of any screen wider than the video
@@ -131,8 +134,8 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     phase: (f) => f * ((40 * 4 * Math.PI) / DURATION), // ambient float completes whole cycles per loop
     // Desktop: same on-screen pill size on every frame (divide out each frame's camera zoom).
     // Phone: canvas titles only on the overview; zoomed in, the pinned title takes over.
-    labelSize: (k) => (vertical ? OV_LABEL : 36 / fit(k).z),
-    labelAlpha: (_, f) => (vertical ? ov(f) : 1),
+    labelSize: (k) => (vertical ? OV_LABEL : DESK_LABEL / fit(k).z),
+    labelAlpha: (k, f) => (vertical ? ov(f) : Math.max(ov(f), inView(k, f))), // desktop: only the focused title while zoomed in
     spin: false,
   };
   // Pinned title's left edge: the screen's left edge where the camera lands (the margin for wide screens)
