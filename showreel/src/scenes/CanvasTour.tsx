@@ -242,11 +242,11 @@ const Pill: React.FC<{ F: Frame; size: number; a: number; alpha: number }> = ({ 
         position: "absolute",
         left: F.x + 4,
         top: F.y - RING_GAP - RING - fs * 1.2 - size * 0.75, // clear air between the title and the ring
-        fontFamily: font.body,
+        fontFamily: font.sans, // Bricolage, like the site's card titles (.v-title)
         fontSize: fs,
         fontWeight: 700,
         lineHeight: 1.2,
-        letterSpacing: "-0.005em",
+        letterSpacing: "-0.02em",
         whiteSpace: "nowrap",
         color: interpolateColors(a, [0, 1], ["#9A9AA2", "#B52752"]),
         opacity: alpha,
