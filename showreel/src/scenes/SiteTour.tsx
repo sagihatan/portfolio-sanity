@@ -37,7 +37,7 @@ const GAP = 240;
 const GLIDE = Easing.bezier(0.2, 0.3, 0.1, 1); // across a wide screen: picks up quickly, long slow finish
 const M = 48; // phone side margin in video px (= the site's 16px gutter)
 const OV_LABEL = 72; // overview titles, world px
-const FOCUS_LABEL = 120; // pinned title: ~32px on a 390 phone, the largest where "SaaS & dashboards" fits on one line
+const FOCUS_LABEL = 90; // pinned title: 72px in the video = 24px on a 390 phone
 const labelTop = (size: number) => size * 0.8 * 1.2 + size * 0.75 + RING_GAP + RING; // title block height above a frame (see Pill)
 const TITLE = labelTop(FOCUS_LABEL); // pinned title block, on-screen px
 
@@ -155,11 +155,11 @@ const PinnedTitles: React.FC<{ frames: Frame[]; title: (k: number, f: number) =>
               position: "absolute",
               left: titleX[k],
               top: 0.08 * H + t.rise, // the title block sits right above the screen (see phoneZoom)
-              fontFamily: font.body,
+              fontFamily: font.sans, // Bricolage, styled like the site's card titles (.v-title)
               fontSize: FOCUS_LABEL * 0.8,
               fontWeight: 700,
               lineHeight: 1.2,
-              letterSpacing: "-0.005em",
+              letterSpacing: "-0.02em",
               whiteSpace: "nowrap",
               color: "#B52752",
               opacity: t.a,
