@@ -2,8 +2,8 @@
 import { useEffect, useRef } from "react";
 
 // Showreel stage under the hero. It shows the reel's first frame as a still
-// from the start. The first scroll loads one video (mobile or desktop, WebM
-// then MP4); when the stage reaches the middle of the screen it widens, the
+// from the start. The first scroll loads one H.264 MP4 (mobile or desktop).
+// When the stage reaches the middle of the screen it widens, the
 // hero copy fades and the video plays over the matching still. If the video
 // never plays, the still simply stays.
 export default function HeroStage() {
@@ -40,13 +40,11 @@ export default function HeroStage() {
 
     function arm() {
       const size = matchMedia("(max-width: 720px)").matches ? "mobile" : "desktop";
-      // MP4 first: H.264 keeps this grainy canvas sharper than VP9 at the same size; WebM is only a fallback
-      for (const ext of ["mp4", "webm"]) {
-        const source = document.createElement("source");
-        source.src = `/assets/showreel/site-${size}-v14.${ext}`;
-        source.type = `video/${ext}`;
-        video!.append(source);
-      }
+      // One optimized H.264 source; retain the poster if playback is unavailable.
+      const source = document.createElement("source");
+      source.src = `/assets/showreel/site-${size}-v15.mp4`;
+      source.type = "video/mp4";
+      video!.append(source);
       video!.muted = true;
       video!.addEventListener("playing", () => stage!.classList.add("is-playing"), { once: true });
       video!.load();
@@ -66,8 +64,8 @@ export default function HeroStage() {
       <div className="hero-stage">
         <div className="hero-stage-inner">
           <picture>
-            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-v14-poster.webp" />
-            <img className="hero-stage-still" src="/assets/showreel/site-desktop-v14-poster.webp" alt="" fetchPriority="low" decoding="async" />
+            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-v15-poster.jpg" />
+            <img className="hero-stage-still" src="/assets/showreel/site-desktop-v15-poster.jpg" alt="" fetchPriority="low" decoding="async" />
           </picture>
           <video ref={videoRef} className="hero-stage-video" muted loop playsInline preload="none"></video>
         </div>
