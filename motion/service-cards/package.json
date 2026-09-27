@@ -1,0 +1,15 @@
+{
+  "name": "service-card-motion",
+  "private": true,
+  "scripts": {
+    "build-from-scratch": "remotion render build-from-scratch.tsx BuildFromScratch",
+    "make-it-better": "remotion render make-it-better.tsx MakeItBetter",
+    "join-your-team": "remotion render join-your-team.tsx JoinYourTeam"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.529",
+    "remotion": "4.0.529",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  }
+}
