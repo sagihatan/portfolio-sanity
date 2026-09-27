@@ -1,4 +1,4 @@
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { tw } from "../lib/anim";
 import { font } from "../lib/brand";
@@ -34,6 +34,7 @@ export const siteDuration = (vertical: boolean) => timing(vertical).DURATION;
 
 // Phone cut: the frames sit on one left edge — Websites | Mobile apps on the first row, then one per row.
 const GAP = 240;
+const GLIDE = Easing.bezier(0.2, 0.3, 0.1, 1); // across a wide screen: picks up quickly, long slow finish
 const M = 48; // phone side margin in video px (= the site's 16px gutter)
 const OV_LABEL = 72; // overview titles, world px
 const FOCUS_LABEL = 120; // pinned title: ~32px on a 390 phone, the largest where "SaaS & dashboards" fits on one line
@@ -68,14 +69,14 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
   };
   // Where the camera lands on frame k and where it leaves: a slight push-in, and on the phone a glide
   // from the left edge to the right edge of any screen wider than the video
-  const shot = (k: number): [Cam, Cam] => {
+  const shot = (k: number): [Cam, Omit<Key, "f">] => {
     const F = frames[k];
     const d = fit(k);
     const z2 = d.z * 1.03;
     if (!vertical || F.w * d.z <= W - 2 * M) return [d, { ...d, z: z2 }];
     return [
       { ...d, cx: F.x + (W / 2 - M) / d.z },
-      { ...d, z: z2, cx: F.x + F.w - (W / 2 - M) / z2 },
+      { ...d, z: z2, cx: F.x + F.w - (W / 2 - M) / z2, ease: GLIDE },
     ];
   };
   // Overview: fit the whole canvas (incl. labels) into the frame
@@ -122,8 +123,8 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     overview,
     keys,
     // The ring draws around each screen as the camera settles and fades as it leaves — nothing on the
-    // overview, so the loop starts and ends clean. Phone: Mobile apps only (the wide screens overflow the video).
-    ring: (f) => selectionAt(frames, vertical ? OPEN.map((o, k) => (k === 1 ? o : Infinity)) : OPEN, LEAVE.map((l) => l - 6), f, RING_TIMING),
+    // overview, so the loop starts and ends clean.
+    ring: (f) => selectionAt(frames, OPEN, LEAVE.map((l) => l - 6), f, RING_TIMING),
     lf: (k, f) => (f < RESET[k] ? 999 : f - RESET[k]), // built until the whip toward it, then rebuilds
     active: (k, f) => (f >= OPEN[k] && f < LEAVE[k] + 6 ? tw(f, OPEN[k], OPEN[k] + 10) * (1 - tw(f, LEAVE[k] - 6, LEAVE[k] + 6)) : 0),
     focus: (k, f) => Math.max(ov(f), 0.22 + 0.78 * inView(k, f)),
@@ -177,7 +178,7 @@ export const SiteTour: React.FC = () => {
   const { plan, title, titleX } = buildPlan(W, H, vertical);
   return (
     <AbsoluteFill style={{ background: "#F4F0F1" }}>
-      <CameraMotionBlur samples={16} shutterAngle={180}>
+      <CameraMotionBlur samples={6} shutterAngle={180}>
         <World plan={plan} />
       </CameraMotionBlur>
       {vertical && <PinnedTitles frames={plan.frames} title={title} titleX={titleX} />}
