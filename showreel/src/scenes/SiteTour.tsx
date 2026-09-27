@@ -1,9 +1,9 @@
 import { AbsoluteFill, Easing, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
-import { tw } from "../lib/anim";
+import { IN_OUT, clamp01, tw } from "../lib/anim";
 import { font } from "../lib/brand";
 import { useLayout } from "../lib/layout";
-import { Cam, Frame, Key, Plan, World, layoutFrames } from "./CanvasTour";
+import { Cam, Frame, Key, Name, Plan, World, camera, layoutFrames } from "./CanvasTour";
 import { RING, RING_GAP, selectionAt } from "../components/Selection";
 import { Grain } from "../components/Grain";
 
@@ -36,11 +36,13 @@ export const siteDuration = (vertical: boolean) => timing(vertical).DURATION;
 const GAP = 240;
 const GLIDE = Easing.bezier(0.2, 0.3, 0.1, 1); // across a wide screen: picks up quickly, long slow finish
 const M = 48; // phone side margin in video px (= the site's 16px gutter)
-const OV_LABEL = 72; // overview titles, world px
 const FOCUS_LABEL = 90; // pinned title: 72px in the video = 24px on a 390 phone
 const labelTop = (size: number) => size * 0.8 * 1.2 + size * 0.75 + RING_GAP + RING; // title block height above a frame (see Pill)
 const TITLE = labelTop(FOCUS_LABEL); // pinned title block, on-screen px
-// Desktop canvas titles: 32px on a 1440 screen (the stage is 1248 of the video's 1920 px wide)
+const smooth = (t: number) => t * t * (3 - 2 * t);
+// Frame labels (Figma-style, fixed on-screen size): 16px on a 1440 screen, 12px on a 390 phone (video shown 358 wide)
+const LABEL = { desk: (16 * 1920) / 1248, phone: (12 * 1080) / 358 };
+// Desktop focused title: 32px on a 1440 screen (the stage is 1248 of the video's 1920 px wide)
 const DESK_LABEL = (32 * 1920) / 1248 / 0.8; // Pill draws text at 0.8 × size
 const DESK_TITLE = labelTop(DESK_LABEL); // title block above the focused screen, video px
 
@@ -60,9 +62,25 @@ const stackFrames = (H: number): Frame[] => {
   return out;
 };
 
+// Desktop cut: two rows — Websites | Mobile apps | SaaS, then Design systems | Branding — with enough air that the
+// 32px title of a focused screen never sits under a neighbouring row (film/story keep layoutFrames' spacing)
+const GRID = { x: 240, y: 320 };
+const gridFrames = (): Frame[] => {
+  const [web, mobile, saas, system, brand] = layoutFrames(false).frames;
+  const mx = web.w + GRID.x;
+  const y2 = Math.max(web.h, mobile.h, saas.h) + GRID.y;
+  return [
+    { ...web, x: 0, y: 0 },
+    { ...mobile, x: mx, y: 0 },
+    { ...saas, x: mx + mobile.w + GRID.x, y: 0 },
+    { ...system, x: 0, y: y2 },
+    { ...brand, x: system.w + GRID.x, y: y2 },
+  ];
+};
+
 const buildPlan = (W: number, H: number, vertical: boolean) => {
   const { LAND, LEAVE, OPEN, RESET, ZOOM_OUT, DURATION } = timing(vertical);
-  const frames = vertical ? stackFrames(H) : layoutFrames(false).frames;
+  const frames = vertical ? stackFrames(H) : gridFrames();
   const fit = (k: number): Cam => {
     const F = frames[k];
     const c = { cx: F.x + F.w / 2, cy: F.y + F.h / 2, px: W / 2 };
@@ -82,18 +100,22 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
       { ...d, z: z2, cx: F.x + F.w - (W / 2 - M) / z2, ease: GLIDE },
     ];
   };
-  // Overview: fit the whole canvas (incl. labels) into the frame
-  const xs = frames.flatMap((F) => [F.x, F.x + F.w]);
-  const ys = frames.flatMap((F) => [F.y - (vertical ? labelTop(OV_LABEL) : 70), F.y + F.h]);
-  const bw = Math.max(...xs) - Math.min(...xs);
-  const bh = Math.max(...ys) - Math.min(...ys);
-  const overview: Cam = {
-    cx: (Math.max(...xs) + Math.min(...xs)) / 2,
-    cy: (Math.max(...ys) + Math.min(...ys)) / 2,
-    z: Math.min((0.9 * W) / bw, (0.9 * H) / bh),
-    px: W / 2,
-    py: H / 2,
+  // Overview: fit the whole canvas, including the labels above the top row, into the frame
+  const label = vertical ? LABEL.phone : LABEL.desk;
+  const fitAll = (top: number): Cam => {
+    const xs = frames.flatMap((F) => [F.x, F.x + F.w]);
+    const ys = frames.flatMap((F) => [F.y - top, F.y + F.h]);
+    const bw = Math.max(...xs) - Math.min(...xs);
+    const bh = Math.max(...ys) - Math.min(...ys);
+    return {
+      cx: (Math.max(...xs) + Math.min(...xs)) / 2,
+      cy: (Math.max(...ys) + Math.min(...ys)) / 2,
+      z: Math.min((0.9 * W) / bw, (0.9 * H) / bh),
+      px: W / 2,
+      py: H / 2,
+    };
   };
+  const overview = fitAll((label * 1.7) / fitAll(0).z); // label block height, in world px at the overview zoom
 
   const keys: Key[] = [{ f: 0, ...overview }, { f: 8, ...overview }];
   frames.forEach((_, k) => {
@@ -112,6 +134,29 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     return inF * outF;
   };
 
+  // Desktop: the labels and the spotlight follow the camera zoom, not the clock, so nothing can jump.
+  // zoomIn: 0 on the overview → 1 at the given zoom (log scale, eased), read from the camera itself.
+  const zoomIn = (z: number, to: number) => smooth(clamp01(Math.log(z / overview.z) / Math.log(to / overview.z)));
+  const zMin = Math.min(...frames.map((_, k) => fit(k).z));
+  // Overview-ness during the dive and the zoom-out (the only moves to and from the overview); 0 in between
+  const ovZ = (f: number) => (f < LAND[0] || f > ZOOM_OUT[0] ? 1 - zoomIn(camera(keys, f).z, zMin) : 0);
+  // The same screen for the spotlight: it never dims while the camera moves toward or away from it
+  const lit = (k: number, f: number) =>
+    (k === 0 ? 1 : tw(f, LAND[k] - PAN, LAND[k])) * (k < 4 ? 1 - tw(f, LEAVE[k], LEAVE[k] + PAN) : 1);
+  // Desktop title: arrives with the focus ring (fade + a small rise) and leaves with it — the same on every screen,
+  // so glides hand over one after the other. While zooming, only the grey labels show, fading with the zoom.
+  const TITLE_PX = DESK_LABEL * 0.8; // 32px on a 1440 screen
+  const deskTitle = (k: number, f: number): Name => {
+    const inT = tw(f, OPEN[k], OPEN[k] + 18, 0, 1, IN_OUT);
+    return {
+      px: TITLE_PX,
+      title: true,
+      gap: (RING_GAP + RING) * fit(k).z + DESK_LABEL * 0.75, // clears the ring
+      alpha: inT * (1 - tw(f, LEAVE[k] - 6, LEAVE[k] + 6, 0, 1, IN_OUT)),
+      rise: (1 - inT) * ((8 * 1920) / 1248), // 8px on screen
+    };
+  };
+
   // Pinned phone title for frame k: fades out over the first half of each glide and in over the second,
   // so two titles never overlap
   const title = (k: number, f: number) => {
@@ -128,14 +173,17 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     // The ring draws around each screen as the camera settles and fades as it leaves — nothing on the
     // overview, so the loop starts and ends clean.
     ring: (f) => selectionAt(frames, OPEN, LEAVE.map((l) => l - 6), f, RING_TIMING),
-    lf: (k, f) => (f < RESET[k] ? 999 : f - RESET[k]), // built until the whip toward it, then rebuilds
+    // Built until the whip toward it, then rebuilds (hidden in the motion blur). Desktop keeps Websites built:
+    // it's in full view for the whole dive, so a rebuild would show as the screen emptying out.
+    lf: (k, f) => (!vertical && k === 0 ? 999 : f < RESET[k] ? 999 : f - RESET[k]),
     active: (k, f) => (f >= OPEN[k] && f < LEAVE[k] + 6 ? tw(f, OPEN[k], OPEN[k] + 10) * (1 - tw(f, LEAVE[k] - 6, LEAVE[k] + 6)) : 0),
-    focus: (k, f) => Math.max(ov(f), 0.22 + 0.78 * inView(k, f)),
+    focus: (k, f) => (vertical ? Math.max(ov(f), 0.22 + 0.78 * inView(k, f)) : Math.max(ovZ(f), 0.22 + 0.78 * lit(k, f))),
     phase: (f) => f * ((40 * 4 * Math.PI) / DURATION), // ambient float completes whole cycles per loop
-    // Desktop: same on-screen pill size on every frame (divide out each frame's camera zoom).
-    // Phone: canvas titles only on the overview; zoomed in, the pinned title takes over.
-    labelSize: (k) => (vertical ? OV_LABEL : DESK_LABEL / fit(k).z),
-    labelAlpha: (k, f) => (vertical ? ov(f) : Math.max(ov(f), inView(k, f))), // desktop: only the focused title while zoomed in
+    // Labels (one on-screen size) only on the overview, fading with the zoom. Zoomed in: the desktop title
+    // arrives with the ring; the phone's pinned title takes over.
+    labelSize: () => label,
+    labelAlpha: (_, f) => (vertical ? ov(f) : ovZ(f)),
+    title: vertical ? undefined : deskTitle,
     spin: false,
   };
   // Pinned title's left edge: the screen's left edge where the camera lands (the margin for wide screens)

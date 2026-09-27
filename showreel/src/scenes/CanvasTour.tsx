@@ -1,4 +1,4 @@
-import { AbsoluteFill, interpolateColors, useCurrentFrame } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { EXPO, IN, IN_OUT, clamp01, lerp, rand, tw } from "../lib/anim";
 import { c, font, grad } from "../lib/brand";
@@ -204,8 +204,9 @@ export type Plan = {
   active: (k: number, f: number) => number; // 0..1 — label highlight + selection outline
   focus: (k: number, f: number) => number; // spotlight opacity
   phase: (f: number) => number; // clock for ambient motion (loop-safe on the website)
-  labelSize: (k: number, f: number) => number; // world px, per frame
-  labelAlpha?: (k: number, f: number) => number; // title visibility (default 1)
+  labelSize: (k: number, f: number) => number; // plain frame label, video px (same on-screen size at any zoom); 0 = none
+  labelAlpha?: (k: number, f: number) => number; // plain label visibility (default 1)
+  title?: (k: number, f: number) => Name; // focused title above the screen (shown on top of the labels)
   spin: boolean; // vortex
 };
 
@@ -232,24 +233,28 @@ const useStoryPlan = (loop: boolean): Plan => {
 };
 
 // ─── Selection ring + title ──────────────────────────────────────────
-/** Frame title: plain text above the ring — primary when in focus, quiet grey otherwise.
- *  One bold layer whose colour blends, so the grey → primary change never shows two overlapping weights. */
-const Pill: React.FC<{ F: Frame; size: number; a: number; alpha: number }> = ({ F, size, a, alpha }) => {
-  const fs = size * 0.8;
+/** A frame name, in video px (its on-screen size, whatever the zoom). title: the pink focused title; else a grey label. */
+export type Name = { px: number; title: boolean; gap: number; alpha: number; rise?: number };
+const label = (px: number, alpha: number): Name => ({ px, title: false, gap: px * 0.5, alpha });
+
+/** Frame name above the screen: a quiet grey label, or the focused title in the brand colour. */
+const Pill: React.FC<{ F: Frame; n: Name; z: number }> = ({ F, n, z }) => {
+  if (n.alpha <= 0) return null;
+  const fs = n.px / z; // video px → world px, so the on-screen size doesn't depend on the camera
   return (
     <div
       style={{
         position: "absolute",
         left: F.x + 4,
-        top: F.y - RING_GAP - RING - fs * 1.2 - size * 0.75, // clear air between the title and the ring
-        fontFamily: font.sans, // Bricolage, like the site's card titles (.v-title)
+        top: F.y - (n.gap - (n.rise ?? 0)) / z - fs * 1.2,
+        fontFamily: font.sans,
         fontSize: fs,
-        fontWeight: 700,
+        fontWeight: n.title ? 700 : 500,
         lineHeight: 1.2,
-        letterSpacing: "-0.02em",
+        letterSpacing: n.title ? "-0.02em" : "-0.01em", // the title like the site's card titles (.v-title)
         whiteSpace: "nowrap",
-        color: interpolateColors(a, [0, 1], ["#9A9AA2", "#B52752"]),
-        opacity: alpha,
+        color: n.title ? "#B52752" : "#9A9AA2",
+        opacity: n.alpha,
       }}
     >
       {F.name}
@@ -308,7 +313,8 @@ export const World: React.FC<{ plan: Plan }> = ({ plan }) => {
               transform: v > 0 ? `translate(${s.x}px, ${s.y}px) rotate(${s.rot}deg) scale(${lerp(1, 0.12, Math.pow(v, 1.2))})` : undefined,
             }}
           >
-            {plan.labelSize(k, f) > 0 && <Pill F={F} size={plan.labelSize(k, f)} a={act[k]} alpha={plan.labelAlpha?.(k, f) ?? 1} />}
+            {plan.labelSize(k, f) > 0 && <Pill F={F} n={label(plan.labelSize(k, f), plan.labelAlpha?.(k, f) ?? 1)} z={cam.z} />}
+            {plan.title && <Pill F={F} n={plan.title(k, f)} z={cam.z} />}
             <div
               style={{
                 position: "absolute",
