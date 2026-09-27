@@ -36,11 +36,12 @@ export const siteDuration = (vertical: boolean) => timing(vertical).DURATION;
 const GAP = 240;
 const GLIDE = Easing.bezier(0.2, 0.3, 0.1, 1); // across a wide screen: picks up quickly, long slow finish
 const M = 48; // phone side margin in video px (= the site's 16px gutter)
-const OV_LABEL = 72; // overview titles, world px
 const FOCUS_LABEL = 90; // pinned title: 72px in the video = 24px on a 390 phone
 const labelTop = (size: number) => size * 0.8 * 1.2 + size * 0.75 + RING_GAP + RING; // title block height above a frame (see Pill)
 const TITLE = labelTop(FOCUS_LABEL); // pinned title block, on-screen px
-// Desktop canvas titles: 32px on a 1440 screen (the stage is 1248 of the video's 1920 px wide)
+// Frame labels (Figma-style, fixed on-screen size): 16px on a 1440 screen, 12px on a 390 phone (video shown 358 wide)
+const LABEL = { desk: (16 * 1920) / 1248, phone: (12 * 1080) / 358 };
+// Desktop focused title: 32px on a 1440 screen (the stage is 1248 of the video's 1920 px wide)
 const DESK_LABEL = (32 * 1920) / 1248 / 0.8; // Pill draws text at 0.8 × size
 const DESK_TITLE = labelTop(DESK_LABEL); // title block above the focused screen, video px
 
@@ -82,18 +83,22 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
       { ...d, z: z2, cx: F.x + F.w - (W / 2 - M) / z2, ease: GLIDE },
     ];
   };
-  // Overview: fit the whole canvas (incl. labels) into the frame
-  const xs = frames.flatMap((F) => [F.x, F.x + F.w]);
-  const ys = frames.flatMap((F) => [F.y - (vertical ? labelTop(OV_LABEL) : 70), F.y + F.h]);
-  const bw = Math.max(...xs) - Math.min(...xs);
-  const bh = Math.max(...ys) - Math.min(...ys);
-  const overview: Cam = {
-    cx: (Math.max(...xs) + Math.min(...xs)) / 2,
-    cy: (Math.max(...ys) + Math.min(...ys)) / 2,
-    z: Math.min((0.9 * W) / bw, (0.9 * H) / bh),
-    px: W / 2,
-    py: H / 2,
+  // Overview: fit the whole canvas, including the labels above the top row, into the frame
+  const label = vertical ? LABEL.phone : LABEL.desk;
+  const fitAll = (top: number): Cam => {
+    const xs = frames.flatMap((F) => [F.x, F.x + F.w]);
+    const ys = frames.flatMap((F) => [F.y - top, F.y + F.h]);
+    const bw = Math.max(...xs) - Math.min(...xs);
+    const bh = Math.max(...ys) - Math.min(...ys);
+    return {
+      cx: (Math.max(...xs) + Math.min(...xs)) / 2,
+      cy: (Math.max(...ys) + Math.min(...ys)) / 2,
+      z: Math.min((0.9 * W) / bw, (0.9 * H) / bh),
+      px: W / 2,
+      py: H / 2,
+    };
   };
+  const overview = fitAll((label * 1.7) / fitAll(0).z); // label block height, in world px at the overview zoom
 
   const keys: Key[] = [{ f: 0, ...overview }, { f: 8, ...overview }];
   frames.forEach((_, k) => {
@@ -132,9 +137,10 @@ const buildPlan = (W: number, H: number, vertical: boolean) => {
     active: (k, f) => (f >= OPEN[k] && f < LEAVE[k] + 6 ? tw(f, OPEN[k], OPEN[k] + 10) * (1 - tw(f, LEAVE[k] - 6, LEAVE[k] + 6)) : 0),
     focus: (k, f) => Math.max(ov(f), 0.22 + 0.78 * inView(k, f)),
     phase: (f) => f * ((40 * 4 * Math.PI) / DURATION), // ambient float completes whole cycles per loop
-    // Desktop: same on-screen pill size on every frame (divide out each frame's camera zoom).
-    // Phone: canvas titles only on the overview; zoomed in, the pinned title takes over.
-    labelSize: (k) => (vertical ? OV_LABEL : DESK_LABEL / fit(k).z),
+    // Labels keep one on-screen size. Desktop: the screen in focus swaps its label for a 32px title.
+    // Phone: labels only on the overview; zoomed in, the pinned title takes over.
+    labelSize: () => label,
+    titleSize: vertical ? undefined : (k) => DESK_LABEL / fit(k).z,
     labelAlpha: (k, f) => (vertical ? ov(f) : Math.max(ov(f), inView(k, f))), // desktop: only the focused title while zoomed in
     spin: false,
   };

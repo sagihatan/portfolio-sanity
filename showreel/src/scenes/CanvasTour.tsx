@@ -1,4 +1,4 @@
-import { AbsoluteFill, interpolateColors, useCurrentFrame } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { EXPO, IN, IN_OUT, clamp01, lerp, rand, tw } from "../lib/anim";
 import { c, font, grad } from "../lib/brand";
@@ -204,7 +204,8 @@ export type Plan = {
   active: (k: number, f: number) => number; // 0..1 — label highlight + selection outline
   focus: (k: number, f: number) => number; // spotlight opacity
   phase: (f: number) => number; // clock for ambient motion (loop-safe on the website)
-  labelSize: (k: number, f: number) => number; // world px, per frame
+  labelSize: (k: number, f: number) => number; // frame label, video px (same on-screen size at any zoom); 0 = none
+  titleSize?: (k: number) => number; // focused title, world px (omit for no title)
   labelAlpha?: (k: number, f: number) => number; // title visibility (default 1)
   spin: boolean; // vortex
 };
@@ -232,28 +233,36 @@ const useStoryPlan = (loop: boolean): Plan => {
 };
 
 // ─── Selection ring + title ──────────────────────────────────────────
-/** Frame title: plain text above the ring — primary when in focus, quiet grey otherwise.
- *  One bold layer whose colour blends, so the grey → primary change never shows two overlapping weights. */
-const Pill: React.FC<{ F: Frame; size: number; a: number; alpha: number }> = ({ F, size, a, alpha }) => {
-  const fs = size * 0.8;
+/** Frame names, like Figma: a small grey label that keeps the same on-screen size at any zoom, and — on the
+ *  screen in focus — a big primary title above the ring. They swap one after the other (never both at once). */
+const Pill: React.FC<{ F: Frame; label: number; title?: number; z: number; a: number; alpha: number }> = ({ F, label, title, z, a, alpha }) => {
+  const text: React.CSSProperties = { position: "absolute", left: F.x + 4, fontFamily: font.sans, lineHeight: 1.2, whiteSpace: "nowrap" };
+  const lf = label / z; // video px → world px, so the label ignores the camera zoom
+  const tf = (title ?? 0) * 0.8;
+  const swap = title ? clamp01(a * 2) : 0; // label out over the first half of the highlight…
   return (
-    <div
-      style={{
-        position: "absolute",
-        left: F.x + 4,
-        top: F.y - RING_GAP - RING - fs * 1.2 - size * 0.75, // clear air between the title and the ring
-        fontFamily: font.sans, // Bricolage, like the site's card titles (.v-title)
-        fontSize: fs,
-        fontWeight: 700,
-        lineHeight: 1.2,
-        letterSpacing: "-0.02em",
-        whiteSpace: "nowrap",
-        color: interpolateColors(a, [0, 1], ["#9A9AA2", "#B52752"]),
-        opacity: alpha,
-      }}
-    >
-      {F.name}
-    </div>
+    <>
+      {swap < 1 && (
+        <div style={{ ...text, top: F.y - lf * 1.7, fontSize: lf, fontWeight: 500, letterSpacing: "-0.01em", color: "#9A9AA2", opacity: alpha * (1 - swap) }}>
+          {F.name}
+        </div>
+      )}
+      {title && a > 0.5 && (
+        <div
+          style={{
+            ...text,
+            top: F.y - RING_GAP - RING - tf * 1.2 - title * 0.75, // clear air between the title and the ring
+            fontSize: tf,
+            fontWeight: 700,
+            letterSpacing: "-0.02em", // like the site's card titles (.v-title)
+            color: "#B52752",
+            opacity: alpha * clamp01(a * 2 - 1), // …title in over the second
+          }}
+        >
+          {F.name}
+        </div>
+      )}
+    </>
   );
 };
 
@@ -308,7 +317,7 @@ export const World: React.FC<{ plan: Plan }> = ({ plan }) => {
               transform: v > 0 ? `translate(${s.x}px, ${s.y}px) rotate(${s.rot}deg) scale(${lerp(1, 0.12, Math.pow(v, 1.2))})` : undefined,
             }}
           >
-            {plan.labelSize(k, f) > 0 && <Pill F={F} size={plan.labelSize(k, f)} a={act[k]} alpha={plan.labelAlpha?.(k, f) ?? 1} />}
+            {plan.labelSize(k, f) > 0 && <Pill F={F} label={plan.labelSize(k, f)} title={plan.titleSize?.(k)} z={cam.z} a={act[k]} alpha={plan.labelAlpha?.(k, f) ?? 1} />}
             <div
               style={{
                 position: "absolute",
