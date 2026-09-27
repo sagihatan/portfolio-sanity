@@ -40,9 +40,10 @@ export default function HeroStage() {
 
     function arm() {
       const size = matchMedia("(max-width: 720px)").matches ? "mobile" : "desktop";
-      for (const ext of ["webm", "mp4"]) {
+      // MP4 first: H.264 keeps this grainy canvas sharper than VP9 at the same size; WebM is only a fallback
+      for (const ext of ["mp4", "webm"]) {
         const source = document.createElement("source");
-        source.src = `/assets/showreel/site-${size}-v9.${ext}`;
+        source.src = `/assets/showreel/site-${size}-v11.${ext}`;
         source.type = `video/${ext}`;
         video!.append(source);
       }
@@ -65,8 +66,8 @@ export default function HeroStage() {
       <div className="hero-stage">
         <div className="hero-stage-inner">
           <picture>
-            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-v9-poster.webp" />
-            <img className="hero-stage-still" src="/assets/showreel/site-desktop-v9-poster.webp" alt="" fetchPriority="low" decoding="async" />
+            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-v11-poster.webp" />
+            <img className="hero-stage-still" src="/assets/showreel/site-desktop-v11-poster.webp" alt="" fetchPriority="low" decoding="async" />
           </picture>
           <video ref={videoRef} className="hero-stage-video" muted loop playsInline preload="none"></video>
         </div>
