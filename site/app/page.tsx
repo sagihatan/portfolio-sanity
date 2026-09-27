@@ -7,6 +7,8 @@ import { PROJECTS_QUERY, SITE_SETTINGS_QUERY, TESTIMONIALS_QUERY } from "../sani
 
 export const revalidate = 60;
 
+const BOOKING_URL = "https://calendar.app.google/kF3SCUaSfhVgH78r7";
+
 const artClassMap: Record<string, string> = {
   'art-1': 'art mock',
   'art-2': 'art mock',
@@ -279,7 +281,7 @@ export default async function Home() {
         <li><a href="#cta">Get Started</a></li>
       </ul>
       <div className="nav-right">
-        <a href="#cta" className="btn btn-primary"><span className="btn-ring"></span><span className="btn-shine"></span><span
+        <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary"><span className="btn-ring"></span><span className="btn-shine"></span><span
             className="btn-label">Book a call</span></a>
       </div>
     </div>
@@ -302,7 +304,7 @@ export default async function Home() {
     </p>
     <div className="hero-cta">
       <a className="btn btn-lg btn-ghost" href="#work">See my work</a>
-      <a className="btn btn-lg btn-primary" href="#cta"><span className="btn-ring"></span><span className="btn-shine"></span><span
+      <a className="btn btn-lg btn-primary" href={BOOKING_URL} target="_blank" rel="noopener noreferrer"><span className="btn-ring"></span><span className="btn-shine"></span><span
           className="btn-label">Book a call</span></a>
     </div>
 
@@ -500,7 +502,7 @@ export default async function Home() {
       <h2 className="cta-title"><span className="mask-wrap"><span className="mask-text">Ready <em>when</em></span></span><span
           className="cta-brk"></span> <span className="mask-wrap"><span className="mask-text">you are</span></span></h2>
       <p className="cta-sub">No long onboarding. Let&rsquo;s get started.</p>
-      <a href="#" className="btn btn-lg btn-primary"><span className="btn-ring"></span><span className="btn-shine"></span><span
+      <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-lg btn-primary"><span className="btn-ring"></span><span className="btn-shine"></span><span
           className="btn-label">Book a call</span></a>
     </div>
   </section>
