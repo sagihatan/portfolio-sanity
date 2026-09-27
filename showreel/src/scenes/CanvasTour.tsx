@@ -1,4 +1,4 @@
-import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolateColors, useCurrentFrame } from "remotion";
 import { CameraMotionBlur } from "@remotion/motion-blur";
 import { EXPO, IN, IN_OUT, clamp01, lerp, rand, tw } from "../lib/anim";
 import { c, font, grad } from "../lib/brand";
@@ -16,7 +16,7 @@ export type R = { x: number; y: number; w: number; h: number };
 export type Frame = R & { name: string; lines: string[]; r: number };
 // screen = (world − C) · z + P
 export type Cam = { cx: number; cy: number; z: number; px: number; py: number };
-export type Key = Cam & { f: number; pan?: boolean; dip?: number }; // dip: how far the camera pulls back mid-pan
+export type Key = Cam & { f: number; pan?: boolean; dip?: number; ease?: (t: number) => number }; // dip: how far the camera pulls back mid-pan; ease: into this key (default IN_OUT)
 type Geo = { frames: Frame[]; keys: Key[]; overview: Cam; collapse: { x: number; y: number } };
 
 /** The canvas: five frames. Landscape = two rows; portrait = a centred column. */
@@ -69,7 +69,7 @@ export const camera = (keys: Key[], f: number): Cam => {
     const a = keys[i];
     const b = keys[i + 1];
     if (f <= b.f) {
-      const t = IN_OUT((f - a.f) / (b.f - a.f));
+      const t = (b.ease ?? IN_OUT)((f - a.f) / (b.f - a.f));
       const dip = b.pan ? 1 - (b.dip ?? 0.34) * Math.sin(Math.PI * t) : 1;
       return {
         cx: lerp(a.cx, b.cx, t),
@@ -232,24 +232,28 @@ const useStoryPlan = (loop: boolean): Plan => {
 };
 
 // ─── Selection ring + title ──────────────────────────────────────────
-/** Frame title: plain text above the ring — primary when in focus, quiet grey otherwise. */
+/** Frame title: plain text above the ring — primary when in focus, quiet grey otherwise.
+ *  One bold layer whose colour blends, so the grey → primary change never shows two overlapping weights. */
 const Pill: React.FC<{ F: Frame; size: number; a: number; alpha: number }> = ({ F, size, a, alpha }) => {
   const fs = size * 0.8;
-  const base: React.CSSProperties = {
-    position: "absolute",
-    left: F.x + 4,
-    top: F.y - RING_GAP - RING - fs * 1.2 - size * 0.75, // clear air between the title and the ring
-    fontFamily: font.body,
-    fontSize: fs,
-    lineHeight: 1.2,
-    letterSpacing: "-0.005em",
-    whiteSpace: "nowrap",
-  };
   return (
-    <>
-      <div style={{ ...base, fontWeight: 500, color: "#9A9AA2", opacity: (1 - a) * alpha }}>{F.name}</div>
-      {a > 0 && <div style={{ ...base, fontWeight: 700, color: "#B52752", opacity: a * alpha }}>{F.name}</div>}
-    </>
+    <div
+      style={{
+        position: "absolute",
+        left: F.x + 4,
+        top: F.y - RING_GAP - RING - fs * 1.2 - size * 0.75, // clear air between the title and the ring
+        fontFamily: font.body,
+        fontSize: fs,
+        fontWeight: 700,
+        lineHeight: 1.2,
+        letterSpacing: "-0.005em",
+        whiteSpace: "nowrap",
+        color: interpolateColors(a, [0, 1], ["#9A9AA2", "#B52752"]),
+        opacity: alpha,
+      }}
+    >
+      {F.name}
+    </div>
   );
 };
 
