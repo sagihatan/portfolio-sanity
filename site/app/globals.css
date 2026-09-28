@@ -3549,8 +3549,8 @@
   overflow: hidden;
   overscroll-behavior: contain;
 }
-.booking-dialog[open] { display: flex; flex-direction: column; animation: booking-enter .22s ease-out; }
-.booking-dialog::backdrop { background: rgba(11, 11, 15, .42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.booking-dialog[open] { display: flex; flex-direction: column; animation: booking-enter .36s cubic-bezier(.22, 1, .36, 1) both; }
+.booking-dialog::backdrop { background: rgba(11, 11, 15, .42); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); animation: booking-backdrop-in .36s ease-out both; }
 .booking-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; border-bottom: 1px solid #eee; flex-shrink: 0; }
 .booking-header h2 { margin: 0; font-family: var(--font-sans); font-size: 20px; font-weight: 600; letter-spacing: -.03em; }
 .booking-close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: #f5f4f4; color: inherit; cursor: pointer; }
@@ -3562,11 +3562,16 @@
 .booking-footer { flex-shrink: 0; padding: 10px 20px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid #eee; text-align: center; font-size: 13px; }
 .booking-footer a { color: #59535e; text-decoration: underline; text-underline-offset: 3px; }
 .booking-handle { display: none; }
-@keyframes booking-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes booking-enter { from { opacity: 0; transform: translateY(24px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes booking-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes booking-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+.booking-loading { opacity: 1; transition: opacity .2s ease; }
+.booking-content[data-loaded="true"] .booking-loading { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s .2s; }
 @media (max-width: 720px) {
   .booking-dialog { inset: auto 0 0; margin: 0; width: 100%; height: 92vh; height: 92dvh; border-radius: 24px 24px 0 0; border-bottom: 0; }
+  .booking-dialog[open] { animation-name: booking-sheet-in; animation-duration: .48s; }
   .booking-handle { display: block; flex-shrink: 0; width: 36px; height: 4px; margin: 10px auto 0; border-radius: 99px; background: #d8d5d8; }
   .booking-header { padding: 4px 14px 10px 20px; }
   .booking-header h2 { font-size: 18px; }
 }
-@media (prefers-reduced-motion: reduce) { .booking-dialog[open] { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .booking-dialog[open], .booking-dialog::backdrop { animation: none; } .booking-loading, .booking-content[data-loaded="true"] .booking-loading { transition: none; } }
