@@ -20,7 +20,7 @@ const satoshi = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Sagi Hatan — Senior Product Designer",
+  title: "Sagi - One designer. Full coverage.",
   description: "From early ideas and UX to polished digital products and websites.",
   openGraph: {
     title: "Sagi - One designer. Full coverage.",
