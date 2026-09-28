@@ -2,9 +2,20 @@
 
 **Read this before changing any showreel video.** It records what's live, where the files are, and how to re-make them. It's for Sagi, Claude and Codex alike. When you publish a new version, update this file in the same PR.
 
-Last updated: 2026-09-28 (Codex), version **v15**, approved Aurora concept 1.
+Last updated: 2026-09-28 (Codex), version **v16**, approved round 08.
 
-## Current delivery — v15
+## Current delivery — v16
+
+Approved round-08 reel: right → down → right → down camera route, primary gradient and colour tokens before overlapping component entrances, and the retained brand-to-card loop ending. Bricolage titles, quiet glass styling and six motion-blur samples remain unchanged.
+
+- Desktop: `site-desktop-v16.mp4`, 1920×1080, 60fps, 16.6s, 2,055,569 bytes.
+- Phone: `site-mobile-v16.mp4`, 1080×1620, 60fps, 18.6s, 2,367,956 bytes.
+- Matching first-frame `site-{desktop,mobile}-v16-poster.jpg`. HeroStage only changes the three versioned URLs; existing responsive selection and playback behavior are retained.
+- Independent source: `/Users/mac/Documents/Projects/Sagi Motion Previews/aurora-experiment-01/source/`, compositions `BrandDesktop08` and `BrandMobile08`. Source archive: `previews/round-08/source-snapshot.tar.gz`; delivery and masters: `web-ready-02/` under the experiment directory.
+- H.264 CRF 12 masters; web encoding libx264 slow CRF 20, yuv420p, High 4.2, GOP 120, faststart, silent. Compared CRF 20 and 24; selected 20 to preserve small text and gradients. SSIM vs master: 0.998337 desktop, 0.997997 phone. Both decode across three loops. Browser/device playback remains unverified due unavailable browser security check.
+- Retain previous assets and Claude’s animation sources. Deployment status is recorded in the PR and shared memory.
+
+## Historical delivery — v15
 
 This section supersedes the v14 implementation and render instructions below, which remain as historical reference. Deployment status is recorded in the PR and shared project memory.
 
