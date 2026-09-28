@@ -42,7 +42,7 @@ export default function HeroStage() {
       const size = matchMedia("(max-width: 720px)").matches ? "mobile" : "desktop";
       // One optimized H.264 source; retain the poster if playback is unavailable.
       const source = document.createElement("source");
-      source.src = `/assets/showreel/site-${size}-v15.mp4`;
+      source.src = `/assets/showreel/site-${size}-v16.mp4`;
       source.type = "video/mp4";
       video!.append(source);
       video!.muted = true;
@@ -64,8 +64,8 @@ export default function HeroStage() {
       <div className="hero-stage">
         <div className="hero-stage-inner">
           <picture>
-            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-v15-poster.jpg" />
-            <img className="hero-stage-still" src="/assets/showreel/site-desktop-v15-poster.jpg" alt="" fetchPriority="low" decoding="async" />
+            <source media="(max-width: 720px)" srcSet="/assets/showreel/site-mobile-v16-poster.jpg" />
+            <img className="hero-stage-still" src="/assets/showreel/site-desktop-v16-poster.jpg" alt="" fetchPriority="low" decoding="async" />
           </picture>
           <video ref={videoRef} className="hero-stage-video" muted loop playsInline preload="none"></video>
         </div>
