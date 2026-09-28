@@ -3568,7 +3568,7 @@
 .booking-loading { opacity: 1; transition: opacity .2s ease; }
 .booking-content[data-loaded="true"] .booking-loading { opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s .2s; }
 @media (max-width: 720px) {
-  .booking-dialog { inset: auto 0 0; margin: 0; width: 100%; height: 92vh; height: 92dvh; border-radius: 24px 24px 0 0; border-bottom: 0; }
+  .booking-dialog { inset: var(--booking-viewport-top, auto) 0 var(--booking-viewport-bottom, 0); margin: 0; width: 100%; height: 92vh; height: var(--booking-viewport-height, 92dvh); border-radius: 24px 24px 0 0; border-bottom: 0; }
   .booking-dialog[open] { animation-name: booking-sheet-in; animation-duration: .48s; }
   .booking-handle { display: block; flex-shrink: 0; width: 36px; height: 4px; margin: 10px auto 0; border-radius: 99px; background: #d8d5d8; }
   .booking-header { padding: 4px 14px 10px 20px; }
