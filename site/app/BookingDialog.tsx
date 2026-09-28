@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [hasOpened, setHasOpened] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -13,11 +13,19 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
 
     let restorePage: (() => void) | undefined;
     let pressedBackdrop = false;
+    let loadTimer: ReturnType<typeof setTimeout> | undefined;
+    const revealCalendar = () => {
+      clearTimeout(loadTimer);
+      if (dialog.open) setHasOpened(true);
+    };
+    const onEntranceEnd = (event: AnimationEvent) => {
+      if (event.target === dialog && !event.pseudoElement) revealCalendar();
+    };
     const close = () => dialog.close();
     const onClose = () => {
       restorePage?.();
       restorePage = undefined;
-      setIsOpen(false);
+      clearTimeout(loadTimer);
     };
     const onClick = (event: MouseEvent) => {
       const trigger = event.target instanceof Element
@@ -26,7 +34,6 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
       // Preserve new-tab / modified clicks and the ordinary link without JS.
       if (!trigger || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       if (dialog.open) return;
-      dialog.showModal();
       event.preventDefault();
       const scrollY = window.scrollY;
       const body = document.body;
@@ -47,8 +54,12 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
         window.scrollTo({ top: scrollY, behavior: "instant" });
         trigger.focus({ preventScroll: true });
       };
-      setLoaded(false);
-      setIsOpen(true);
+      // Lock the original scroll position before showModal moves focus.
+      dialog.showModal();
+      // Keep Cal.com's initial work out of the entrance animation. Once loaded,
+      // retain the iframe so reopening does not flash or restart the calendar.
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) revealCalendar();
+      else loadTimer = setTimeout(revealCalendar, 600);
     };
     const isBackdrop = (event: PointerEvent) => {
       const rect = dialog.getBoundingClientRect();
@@ -61,11 +72,14 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
     };
     document.addEventListener("click", onClick);
     dialog.addEventListener("close", onClose);
+    dialog.addEventListener("animationend", onEntranceEnd);
     dialog.addEventListener("pointerdown", onPointerDown);
     dialog.addEventListener("pointerup", onPointerUp);
     return () => {
       document.removeEventListener("click", onClick);
       dialog.removeEventListener("close", onClose);
+      dialog.removeEventListener("animationend", onEntranceEnd);
+      clearTimeout(loadTimer);
       dialog.removeEventListener("pointerdown", onPointerDown);
       dialog.removeEventListener("pointerup", onPointerUp);
       if (dialog.open) dialog.close();
@@ -82,9 +96,9 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
         </button>
       </header>
-      <div className="booking-content">
-        {isOpen && <>
-          {!loaded && <p className="booking-loading" role="status">Loading available times…</p>}
+      <div className="booking-content" data-loaded={loaded}>
+        <p className="booking-loading" role="status" aria-hidden={loaded}>Loading available times…</p>
+        {hasOpened && <>
           <iframe title="Book a 30-minute call with Sagi" src={`${bookingUrl}?embed=true&theme=light&layout=month_view`} onLoad={() => setLoaded(true)} />
         </>}
       </div>
