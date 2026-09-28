@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const configureCalendar = useCallback(() => {
     // Cal's embed UI protocol reaches cross-origin fields. Its name/email inputs
     // use text-sm; a minimum of 16px avoids iPhone's small-input focus zoom.
@@ -50,7 +51,17 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
     const onBreakpoint = () => { configureCalendar(); scheduleViewport(); };
     const onCalendarMessage = (event: MessageEvent) => {
       if (event.origin !== new URL(bookingUrl).origin || event.source !== frameRef.current?.contentWindow) return;
-      if (event.data?.originator === "CAL" && event.data.type === "__iframeReady") configureCalendar();
+      if (event.data?.originator !== "CAL") return;
+      const { type, data } = event.data;
+      if (type === "__iframeReady") configureCalendar();
+      // Follow Cal's inline-embed sizing protocol. A content-height iframe lets
+      // the outer sheet scroll focused fields instead of nesting two scrollers.
+      if (type === "__dimensionChanged" && typeof data?.iframeHeight === "number" && Number.isFinite(data.iframeHeight) && data.iframeHeight > 0 && data.iframeHeight < 30000) {
+        dialog.style.setProperty("--booking-frame-height", `${Math.ceil(data.iframeHeight)}px`);
+      }
+      if (type === "__scrollByDistance" && mobile.matches && typeof data?.distance === "number" && Number.isFinite(data.distance)) {
+        contentRef.current?.scrollBy({ top: data.distance, behavior: "instant" });
+      }
     };
     let restorePage: (() => void) | undefined;
     let pressedBackdrop = false;
@@ -151,7 +162,7 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
         </button>
       </header>
-      <div className="booking-content" data-loaded={loaded}>
+      <div ref={contentRef} className="booking-content" data-loaded={loaded}>
         <p className="booking-loading" role="status" aria-hidden={loaded}>Loading available times…</p>
         {hasOpened && <>
           <iframe ref={frameRef} title="Book a 30-minute call with Sagi" src={`${bookingUrl}?embed=true&theme=light&layout=month_view`} onLoad={() => { configureCalendar(); setLoaded(true); }} />
