@@ -1,9 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const configureCalendar = useCallback(() => {
+    // Cal's embed UI protocol reaches cross-origin fields. Its name/email inputs
+    // use text-sm; a minimum of 16px avoids iPhone's small-input focus zoom.
+    const smallText = window.matchMedia("(max-width: 720px)").matches ? "max(16px, .875rem)" : ".875rem";
+    frameRef.current?.contentWindow?.postMessage({
+      originator: "CAL",
+      method: "ui",
+      arg: { cssVarsPerTheme: { light: { "text-sm": smallText }, dark: { "text-sm": smallText } } },
+    }, new URL(bookingUrl).origin);
+  }, [bookingUrl]);
   const [hasOpened, setHasOpened] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
@@ -11,6 +22,36 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
     const dialog = dialogRef.current;
     if (!dialog || typeof dialog.showModal !== "function") return;
 
+    const mobile = window.matchMedia("(max-width: 720px)");
+    const viewport = window.visualViewport;
+    let viewportFrame = 0;
+    const clearViewport = () => {
+      dialog.style.removeProperty("--booking-viewport-top");
+      dialog.style.removeProperty("--booking-viewport-height");
+      dialog.style.removeProperty("--booking-viewport-bottom");
+    };
+    const fitViewport = () => {
+      viewportFrame = 0;
+      // Preserve deliberate pinch zoom instead of counter-scaling the content.
+      if (!dialog.open || !mobile.matches || !viewport || Math.abs(viewport.scale - 1) > .05) {
+        clearViewport();
+        return;
+      }
+      // Keyboards may shrink only the visual viewport, leaving dvh unchanged.
+      // Keep controls above the keyboard; the embedded form remains scrollable.
+      const height = Math.max(0, Math.min(window.innerHeight * .92, viewport.height - 12));
+      dialog.style.setProperty("--booking-viewport-height", `${height}px`);
+      dialog.style.setProperty("--booking-viewport-top", `${viewport.offsetTop + viewport.height - height}px`);
+      dialog.style.setProperty("--booking-viewport-bottom", "auto");
+    };
+    const scheduleViewport = () => {
+      if (!viewportFrame) viewportFrame = requestAnimationFrame(fitViewport);
+    };
+    const onBreakpoint = () => { configureCalendar(); scheduleViewport(); };
+    const onCalendarMessage = (event: MessageEvent) => {
+      if (event.origin !== new URL(bookingUrl).origin || event.source !== frameRef.current?.contentWindow) return;
+      if (event.data?.originator === "CAL" && event.data.type === "__iframeReady") configureCalendar();
+    };
     let restorePage: (() => void) | undefined;
     let pressedBackdrop = false;
     let loadTimer: ReturnType<typeof setTimeout> | undefined;
@@ -23,6 +64,7 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
     };
     const close = () => dialog.close();
     const onClose = () => {
+      clearViewport();
       restorePage?.();
       restorePage = undefined;
       clearTimeout(loadTimer);
@@ -56,6 +98,7 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
       };
       // Lock the original scroll position before showModal moves focus.
       dialog.showModal();
+      fitViewport();
       // Keep Cal.com's initial work out of the entrance animation. Once loaded,
       // retain the iframe so reopening does not flash or restart the calendar.
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) revealCalendar();
@@ -71,12 +114,24 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
       pressedBackdrop = false;
     };
     document.addEventListener("click", onClick);
+    viewport?.addEventListener("resize", scheduleViewport);
+    viewport?.addEventListener("scroll", scheduleViewport);
+    window.addEventListener("resize", scheduleViewport);
+    window.addEventListener("message", onCalendarMessage);
+    mobile.addEventListener("change", onBreakpoint);
     dialog.addEventListener("close", onClose);
     dialog.addEventListener("animationend", onEntranceEnd);
     dialog.addEventListener("pointerdown", onPointerDown);
     dialog.addEventListener("pointerup", onPointerUp);
     return () => {
       document.removeEventListener("click", onClick);
+      viewport?.removeEventListener("resize", scheduleViewport);
+      viewport?.removeEventListener("scroll", scheduleViewport);
+      window.removeEventListener("resize", scheduleViewport);
+      window.removeEventListener("message", onCalendarMessage);
+      mobile.removeEventListener("change", onBreakpoint);
+      cancelAnimationFrame(viewportFrame);
+      clearViewport();
       dialog.removeEventListener("close", onClose);
       dialog.removeEventListener("animationend", onEntranceEnd);
       clearTimeout(loadTimer);
@@ -85,7 +140,7 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
       if (dialog.open) dialog.close();
       restorePage?.();
     };
-  }, []);
+  }, [bookingUrl, configureCalendar]);
 
   return (
     <dialog ref={dialogRef} className="booking-dialog" aria-labelledby="booking-title">
@@ -99,7 +154,7 @@ export default function BookingDialog({ bookingUrl }: { bookingUrl: string }) {
       <div className="booking-content" data-loaded={loaded}>
         <p className="booking-loading" role="status" aria-hidden={loaded}>Loading available times…</p>
         {hasOpened && <>
-          <iframe title="Book a 30-minute call with Sagi" src={`${bookingUrl}?embed=true&theme=light&layout=month_view`} onLoad={() => setLoaded(true)} />
+          <iframe ref={frameRef} title="Book a 30-minute call with Sagi" src={`${bookingUrl}?embed=true&theme=light&layout=month_view`} onLoad={() => { configureCalendar(); setLoaded(true); }} />
         </>}
       </div>
       <footer className="booking-footer"><a href={bookingUrl} target="_blank" rel="noopener noreferrer">Open in Cal.com <span aria-hidden="true">↗</span></a></footer>
