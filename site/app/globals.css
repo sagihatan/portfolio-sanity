@@ -2916,13 +2916,14 @@
         z-index: 3;
       }
 
+      /* One screen tall, content near the top so it stays close to Love
+         letters; the spare height sits below the button. */
       #cta {
-        min-height: 118svh;
-        display: flex;
-        align-items: center;
+        min-height: 100svh;
+        justify-content: flex-start;
         z-index: 1;
-        padding-top: 32px !important;
-        padding-bottom: max(60px, calc(34svh - 120px)) !important;
+        padding-top: 64px !important;
+        padding-bottom: 32px !important;
       }
 
       .section-head {
