@@ -53,6 +53,15 @@ export default function RootLayout({
         <link rel="shortcut icon" href="/assets/favicon.ico" />
         <link rel="manifest" href="/assets/site.webmanifest" />
         <link rel="preconnect" href="https://cdn.sanity.io" />
+        {/* A refresh always starts at the hero: no restored scroll position, and
+            a #section left in the URL by an earlier click is dropped. Shared
+            links with a #section still open there. */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          history.scrollRestoration = "manual";
+          if (location.hash && performance.getEntriesByType("navigation")[0]?.type === "reload") {
+            history.replaceState(null, "", location.pathname + location.search);
+          }
+        `}} />
         {/* Turbopack/Lightning CSS strips unprefixed backdrop-filter from these rules — injected raw to bypass optimizer */}
         <style dangerouslySetInnerHTML={{ __html: `
           nav.topnav.compact .nav-inner::before {
