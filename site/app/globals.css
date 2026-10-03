@@ -1038,8 +1038,18 @@
       padding-bottom: 40px !important;
     }
 
+    /* The last section gets up to a screen of height with its content
+       centred: a laptop screen to itself, on taller screens capped at 1144px
+       so it stays connected to the section above. Extra room at the bottom,
+       growing with the screen: 40px at 720 tall, 96px at 900, 216px from 1080. */
     #cta {
       padding-top: 40px !important;
+      padding-bottom: clamp(40px, calc(66.67svh - 504px), 216px) !important;
+      min-height: min(100svh, 1144px);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .section-head {
@@ -2906,13 +2916,15 @@
         z-index: 3;
       }
 
+      /* Up to one screen tall (capped at 792px so tall windows don't add
+         blank space), content near the top so it stays close to Love
+         letters; the spare height sits below the button. */
       #cta {
-        min-height: 118svh;
-        display: flex;
-        align-items: center;
+        min-height: min(100svh, 792px);
+        justify-content: flex-start;
         z-index: 1;
-        padding-top: 32px !important;
-        padding-bottom: max(60px, calc(34svh - 120px)) !important;
+        padding-top: 64px !important;
+        padding-bottom: 32px !important;
       }
 
       .section-head {
