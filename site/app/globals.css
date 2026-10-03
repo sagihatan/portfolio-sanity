@@ -1039,12 +1039,13 @@
     }
 
     /* The last section gets up to a screen of height with its content
-       centred: a laptop screen to itself, on taller screens capped at 1024px
-       so it stays connected to the section above. Extra room at the bottom. */
+       centred: a laptop screen to itself, on taller screens capped at 1144px
+       so it stays connected to the section above. Extra room at the bottom,
+       growing with the screen: 40px at 720 tall, 96px at 900, 216px from 1080. */
     #cta {
       padding-top: 40px !important;
-      padding-bottom: 96px !important;
-      min-height: min(100svh, 1024px);
+      padding-bottom: clamp(40px, calc(66.67svh - 504px), 216px) !important;
+      min-height: min(100svh, 1144px);
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
