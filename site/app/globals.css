@@ -996,6 +996,16 @@
       display: block;
     }
 
+    /* Focus marker at the stage's centre (HeroStage.tsx). */
+    .hero-stage-mid {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+
     /* The still is the video's first frame, so this fade is only a safety net. */
     .hero-stage-video {
       opacity: 0;
