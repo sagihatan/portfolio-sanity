@@ -2916,11 +2916,11 @@
         z-index: 3;
       }
 
-      /* Up to one screen tall (capped at 720px so tall windows don't add
+      /* Up to one screen tall (capped at 792px so tall windows don't add
          blank space), content near the top so it stays close to Love
          letters; the spare height sits below the button. */
       #cta {
-        min-height: min(100svh, 720px);
+        min-height: min(100svh, 792px);
         justify-content: flex-start;
         z-index: 1;
         padding-top: 64px !important;
