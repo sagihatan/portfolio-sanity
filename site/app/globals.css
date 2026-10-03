@@ -1038,12 +1038,13 @@
       padding-bottom: 40px !important;
     }
 
-    /* The last section fills the screen with its content centred, so at the
-       end of the page it has the screen to itself on any height. */
+    /* The last section gets up to a screen of height with its content
+       centred: a laptop screen to itself, on taller screens capped at 960px
+       so it stays connected to the section above. */
     #cta {
       padding-top: 40px !important;
       padding-bottom: 40px !important;
-      min-height: 100svh;
+      min-height: min(100svh, 960px);
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
